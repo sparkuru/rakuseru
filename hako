@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# hako —— 在 node:22-alpine 容器里跑 Rakuseru 开发命令的包裹器。
+# 宿主机不装 Node/npm；install、lint、typecheck、test、build、Vite dev server 全走容器。
+# 仓库挂到 /app，uid 映射避免 root 占文件，HOME 固定到 /app/.devhome。
+#
+# 用法:
+#   ./hako npm install
+#   ./hako npm run typecheck
+#   ./hako npm run lint
+#   ./hako npm test
+#   ./hako npm run build
+#   ./hako npm run dev
+#
+# 端口: Vite dev server 5173 已发布到宿主。
+# 容器内服务须监听 0.0.0.0；package.json 的 dev script 已使用 vite --host 0.0.0.0。
+set -Eeuo pipefail
+
+IMAGE="node:22-alpine"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STEP_INDEX=0
+
+quote_command() {
+  local arg
+
+  for arg in "$@"; do
+    printf '%q ' "$arg"
+  done
+}
+
+log_step() {
+  local label=$1
+  shift
+
+  STEP_INDEX=$((STEP_INDEX + 1))
+  printf '#%s [hako %s] %s\n' "$STEP_INDEX" "$label" "$(quote_command "$@")" >&2
+}
+
+run_step() {
+  local label=$1
+  shift
+
+  log_step "$label" "$@"
+  "$@"
+}
+
+DEVHOME="${REPO_ROOT}/.devhome"
+run_step internal mkdir -p "${DEVHOME}"
+
+TTY_FLAGS=()
+[ -t 0 ] && TTY_FLAGS+=(-i)
+[ -t 0 ] && [ -t 1 ] && TTY_FLAGS+=(-t)
+
+DOCKER_CMD=(
+  docker run --rm
+  "${TTY_FLAGS[@]}"
+  --user "$(id -u):$(id -g)"
+  -e HOME=/app/.devhome
+  -v "${REPO_ROOT}:/app"
+  -w /app
+  -p 5173:5173
+  "${IMAGE}" "$@"
+)
+
+log_step run "${DOCKER_CMD[@]}"
+exec "${DOCKER_CMD[@]}"

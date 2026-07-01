@@ -1,0 +1,6 @@
+.devhome
+node_modules
+dist
+coverage
+*.tsbuildinfo
+npm-debug.log*
