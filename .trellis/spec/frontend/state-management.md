@@ -1,38 +1,38 @@
 # State Management
 
-> How state is managed in this project.
-
----
-
-## Overview
-
 Rakuseru uses Zustand for app-level editor state. The store owns the active `SheetDocument`, selected column, persistence status, and user-facing status message.
 
----
+## Store Ownership
+
+`src/state/sheetStore.ts` is the source of truth for:
+
+- Active `document`.
+- `selectedColumnId`.
+- Save/load `status`.
+- User-facing `message`.
+- Actions that mutate the document through model helpers.
+
+Store actions call `src/model/column.ts`, `src/model/row.ts`, and `src/model/document.ts` helpers instead of mutating nested document state inline in components.
 
 ## State Categories
 
 - Global state: active document, selected column id, save/load status.
-- Local component state: transient UI-only values that do not affect the document contract.
-- Server state: none in MVP. Do not add React Query until a backend/API exists.
-- URL state: none in MVP. Add router state only when URL-addressable cells or multi-file flows are implemented.
+- Local component state: refs and transient UI-only values that do not affect the document contract.
+- Browser persistence: IndexedDB through `src/storage/indexedDb.ts`.
+- Server state: none in MVP.
+- URL state: none in MVP; add routing only when URL-addressable cells or multi-file flows are implemented.
 
----
+## Persistence Flow
 
-## When to Use Global State
+`App` calls `load()` on mount, then debounces `save()` when the document changes. `loadActiveDocument()` validates stored data and returns `undefined` for invalid or missing data, so the store can fall back to `createSheetDocument()`.
 
-Use global state when the value changes the document, schema editor, table rendering, autosave, import/export, or cross-component selection. Keep one-off control display state local.
+## Error State
 
----
+Use `setError(message)` for user-visible failures. Import handlers should catch adapter errors and store the message; see `src/components/Toolbar.tsx`.
 
-## Server State
+## Anti-Patterns
 
-MVP persistence is local IndexedDB through `src/storage/indexedDb.ts`. Store actions call model helpers, then autosave writes the full validated document.
-
----
-
-## Common Mistakes
-
-- Do not mutate `SheetDocument` in components.
-- Do not scatter cell coercion rules across components; call model helpers through store actions.
-- Do not introduce remote-state libraries before there is remote state.
+- Mutating `SheetDocument` in components.
+- Scattering cell coercion rules across components.
+- Introducing remote-state libraries before a backend/API exists.
+- Storing imported documents without validation.

@@ -1,51 +1,24 @@
-# Logging Guidelines
+# Backend Logging Guidelines
 
-> How logging is done in this project.
+Rakuseru has no backend logging layer. The current app should not add persistent logs, telemetry, or analytics as part of normal frontend feature work.
 
----
+## Current State
 
-## Overview
+- No logging library is configured.
+- No server process exists.
+- User-visible status messages live in `src/state/sheetStore.ts`.
+- Validation errors are surfaced in the UI status line, not logged as the primary feedback path.
 
-<!--
-Document your project's logging conventions here.
+## Browser Diagnostics
 
-Questions to answer:
-- What logging library do you use?
-- What are the log levels and when to use each?
-- What should be logged?
-- What should NOT be logged (PII, secrets)?
--->
+Use explicit user-facing status for recoverable import, save, and load failures. Temporary `console.*` debugging should not be committed as an observability strategy.
 
-(To be filled by the team)
+## Future Backend Logging
 
----
+If a backend is introduced, logging must be designed with the server package. Define levels, structured fields, request correlation, redaction rules, and retention before logging document contents or uploaded image metadata.
 
-## Log Levels
+## Anti-Patterns
 
-<!-- When to use each level: debug, info, warn, error -->
-
-(To be filled by the team)
-
----
-
-## Structured Logging
-
-<!-- Log format, required fields -->
-
-(To be filled by the team)
-
----
-
-## What to Log
-
-<!-- Important events to log -->
-
-(To be filled by the team)
-
----
-
-## What NOT to Log
-
-<!-- Sensitive data, PII, secrets -->
-
-(To be filled by the team)
+- Logging full `SheetDocument` payloads or image data URLs.
+- Adding analytics or telemetry without product scope.
+- Hiding user-action failures in console output instead of `setError` or another visible UI path.

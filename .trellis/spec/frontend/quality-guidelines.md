@@ -1,41 +1,44 @@
-# Quality Guidelines
+# Frontend Quality Guidelines
 
-> Code quality standards for frontend development.
+Frontend changes should pass the Docker-backed checks through `./hako`. The wrapper is the command boundary and keeps Node/npm execution consistent for this repository.
 
----
+## Required Commands
 
-## Overview
+Use the narrow repo-local wrapper:
 
-Frontend changes must pass the Docker-backed checks through `./hako`. The wrapper is the approval boundary and keeps Node/npm off the host.
+```bash
+./hako npm run lint
+./hako npm run typecheck
+./hako npm test
+./hako npm run build
+```
 
----
+Run `./hako npm audit --omit=dev` after adding runtime dependencies. For user-facing UI work, perform a browser smoke test in addition to automated checks when possible.
 
-## Forbidden Patterns
+## Current Tooling
 
-- Do not run raw host `npm` for project validation.
-- Do not add broad Codex allow rules for raw `docker`, `bash`, `sh`, or package-manager commands.
-- Do not keep known high-severity runtime dependency audit findings when a reasonable dependency change removes them.
-- Do not import heavy export libraries into the initial UI bundle when they are only needed after a button click.
+- Vite dev server runs on port 5173.
+- Vitest uses `jsdom` and global test APIs from `vite.config.ts`.
+- ESLint uses `@eslint/js`, `typescript-eslint`, `react-hooks`, and `react-refresh`.
+- `eslint.config.js` ignores `dist`, `node_modules`, and `.devhome`.
 
----
+## Testing Expectations
 
-## Required Patterns
+- Model helpers and import validation need unit tests.
+- Adapter behavior should be tested when escaping, file format, or error behavior changes.
+- UI-visible workflow changes need a browser smoke test and, when practical, a focused component or integration test.
+- Keep tests close to the module they verify; `src/model/document.test.ts` is the current pattern.
 
-- Use `./hako npm run typecheck`, `./hako npm run lint`, `./hako npm test`, and `./hako npm run build`.
-- Use `npm audit --omit=dev` after adding runtime dependencies.
-- Lazy-load heavy exporter dependencies when practical.
-- Keep `hako` executable and `.devhome` gitignored.
+## Dependency And Bundle Review
 
----
+- Do not import heavy export libraries into the initial UI bundle when they are only needed after a button click. `src/adapters/exportXlsx.ts` lazy-loads `exceljs`.
+- Prefer existing dependencies before adding new ones: React, Zustand, TanStack Table, idb, lucide-react, ExcelJS, Vitest, Vite.
+- Avoid broadening the approved command surface to raw Docker or package-manager commands when `./hako` can run the check.
 
-## Testing Requirements
-
-Model helpers and import validation need unit tests. UI-visible changes need at least a browser smoke test in addition to automated checks.
-
----
-
-## Code Review Checklist
+## Review Checklist
 
 - Document contract changes are reflected in model helpers, validation, adapters, and tests.
 - Components call store/model actions instead of duplicating mutation rules.
-- Build warnings from large dependencies are acknowledged and mitigated where reasonable.
+- Import and storage paths validate untrusted payloads.
+- Build warnings from large dependencies are acknowledged and mitigated where practical.
+- User-facing failures are visible through status/error UI, not only console output.

@@ -1,51 +1,28 @@
-# Quality Guidelines
+# Backend Quality Guidelines
 
-> Code quality standards for backend development.
+Backend quality work currently means preserving the frontend-only architecture unless a task explicitly expands the scope.
 
----
+## Required Review Checks
 
-## Overview
+- Confirm backend work is in scope for the task.
+- Read `mvp.md` and document why the frontend-only decision no longer applies.
+- Keep document contracts aligned with `src/model/document.ts` and `src/model/validation.ts`.
+- Add validation commands and tests for any new server package in the same task.
+- Update this backend spec directory once real backend patterns exist.
 
-<!--
-Document your project's quality standards here.
+## Validation Commands
 
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
+There are no backend-specific commands today. Current project checks are frontend commands through `./hako`:
 
-(To be filled by the team)
+```bash
+./hako npm run lint
+./hako npm run typecheck
+./hako npm test
+./hako npm run build
+```
 
----
+## Anti-Patterns
 
-## Forbidden Patterns
-
-<!-- Patterns that should never be used and why -->
-
-(To be filled by the team)
-
----
-
-## Required Patterns
-
-<!-- Patterns that must always be used -->
-
-(To be filled by the team)
-
----
-
-## Testing Requirements
-
-<!-- What level of testing is expected -->
-
-(To be filled by the team)
-
----
-
-## Code Review Checklist
-
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+- Adding server code without tests, scripts, and spec updates.
+- Duplicating document validation separately from the current model contract.
+- Treating a future backend as required for local import/export or IndexedDB autosave.
