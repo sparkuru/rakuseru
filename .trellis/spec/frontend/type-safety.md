@@ -53,7 +53,8 @@ setError(message: string): void
 - Wrong document version -> `Document version must be 1.`.
 - Empty or invalid title -> `Document title is required.`.
 - Missing or empty columns -> `Document must include at least one column.`.
-- Duplicate column ids -> `Column ids must be unique.`.
+- Duplicate valid column ids -> `Column ids must be unique.`.
+- Malformed columns with synthetic fallback ids -> report the structural column error, not a duplicate-id error caused by fallback ids.
 - Non-array rows -> `Rows must be an array.`.
 - Unsupported column type -> `Column <n> has an unsupported type.`.
 - Valid document -> version-1 `SheetDocument` with row cells aligned to current column ids.
@@ -68,6 +69,7 @@ setError(message: string): void
 
 - Unit tests should cover validation failures in `validateSheetDocument`.
 - Adapter tests should assert `importJson` throws user-readable `Error` messages when parse or validation behavior changes.
+- Adapter tests should cover duplicate-id errors and malformed-column errors separately so validation fallback ids do not create misleading duplicate-id regressions.
 - UI/store tests are required if the status display or import event flow becomes more complex than the current toolbar handler.
 
 ### 7. Wrong vs Correct

@@ -13,6 +13,8 @@ Use the narrow repo-local wrapper:
 ./hako npm run build
 ```
 
+Run these commands serially. The current `./hako` wrapper publishes Vite port 5173 for every invocation, so parallel `./hako ...` commands can fail with a Docker port-allocation error even when the underlying check is healthy.
+
 Run `./hako npm audit --omit=dev` after adding runtime dependencies. For user-facing UI work, perform a browser smoke test in addition to automated checks when possible.
 
 ## Current Tooling

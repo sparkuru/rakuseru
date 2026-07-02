@@ -30,8 +30,9 @@ export function validateSheetDocument(input: unknown): ValidationResult<SheetDoc
     errors.push('Document must include at least one column.')
   }
 
-  const columnIds = new Set(columns.map((column) => column.id))
-  if (columnIds.size !== columns.length) {
+  const realColumnIds = Array.isArray(input.columns) ? input.columns.flatMap(readValidColumnId) : []
+  const columnIds = new Set(realColumnIds)
+  if (columnIds.size !== realColumnIds.length) {
     errors.push('Column ids must be unique.')
   }
 
@@ -85,6 +86,14 @@ function normalizeColumn(input: unknown, index: number, errors: string[]): Colum
     options: readOptionalStringArray(input.options),
     required: readOptionalBoolean(input.required),
   }
+}
+
+function readValidColumnId(input: unknown): string[] {
+  if (!isRecord(input) || typeof input.id !== 'string' || input.id.trim() === '') {
+    return []
+  }
+
+  return [input.id]
 }
 
 function normalizeRow(input: unknown, index: number, columns: ColumnDef[], errors: string[]): RowData {
