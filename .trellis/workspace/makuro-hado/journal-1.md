@@ -71,3 +71,36 @@ Filled Rakuseru backend and frontend Trellis specs from the current codebase, do
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Harden contracts and dependency reproducibility
+
+**Date**: 2026-07-02
+**Task**: Harden contracts and dependency reproducibility
+**Branch**: `makuro-haado`
+
+### Summary
+
+Pinned package dependency ranges to lockfile versions, added adapter contract tests for JSON import and export escaping behavior, fixed misleading validation duplicate-id noise from fallback column ids, and updated frontend specs with the validation and hako serial-check constraints.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3323b21` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
