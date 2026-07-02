@@ -38,3 +38,36 @@ Implemented and validated the Rakuseru structured procurement sheet MVP, recorde
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Bootstrap Trellis specs
+
+**Date**: 2026-07-02
+**Task**: Bootstrap Trellis specs
+**Branch**: `makuro-haado`
+
+### Summary
+
+Filled Rakuseru backend and frontend Trellis specs from the current codebase, documenting the frontend-only architecture, module boundaries, Zustand state flow, IndexedDB persistence, JSON import validation contract, and project quality checks.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `172b699` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
