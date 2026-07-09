@@ -137,3 +137,36 @@ Implemented the Rakuseru editor interaction polish pass: active row/cell/column 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Refine sheet editing and drag reorder UX
+
+**Date**: 2026-07-09
+**Task**: Refine sheet editing and drag reorder UX
+**Branch**: `makuro-haado`
+
+### Summary
+
+Moved heavy cell editing into the right panel, refined import/export controls, added compact image and schema controls, implemented Typora-style row and column drag reordering, and validated lint/typecheck/tests/build plus browser smoke.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c110a71` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

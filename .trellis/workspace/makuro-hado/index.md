@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
+- **Total Sessions**: 5
 - **Last Active**: 2026-07-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~139 | Active |
+| `journal-1.md` | ~172 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-07-09 | Refine sheet editing and drag reorder UX | `c110a71` | `makuro-haado` |
 | 4 | 2026-07-09 | Polish editor interactions | `7ba1569` | `makuro-haado` |
 | 3 | 2026-07-02 | Harden contracts and dependency reproducibility | `3323b21` | `makuro-haado` |
 | 2 | 2026-07-02 | Bootstrap Trellis specs | `172b699` | `makuro-haado` |
