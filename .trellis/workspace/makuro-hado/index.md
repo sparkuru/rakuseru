@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
+- **Total Sessions**: 6
 - **Last Active**: 2026-07-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~172 | Active |
+| `journal-1.md` | ~206 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 6 | 2026-07-09 | Export preview validation and Trellis Plus gates | `7928a39`, `3dfbeb6` | `makuro-haado` |
 | 5 | 2026-07-09 | Refine sheet editing and drag reorder UX | `c110a71` | `makuro-haado` |
 | 4 | 2026-07-09 | Polish editor interactions | `7ba1569` | `makuro-haado` |
 | 3 | 2026-07-02 | Harden contracts and dependency reproducibility | `3323b21` | `makuro-haado` |

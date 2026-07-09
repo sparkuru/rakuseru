@@ -170,3 +170,37 @@ Moved heavy cell editing into the right panel, refined import/export controls, a
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Export preview validation and Trellis Plus gates
+
+**Date**: 2026-07-09
+**Task**: Export preview validation and Trellis Plus gates
+**Branch**: `makuro-haado`
+
+### Summary
+
+Implemented export preview and active-sheet validation, then applied Trellis Plus submit-ready, attribution, wrapper, agent, and Codex project integration rules.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7928a39` | (see git log) |
+| `3dfbeb6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
