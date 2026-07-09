@@ -8,9 +8,16 @@ import { loadActiveDocument, saveActiveDocument } from '../storage/indexedDb'
 
 type SheetStatus = 'idle' | 'loading' | 'saving' | 'saved' | 'error'
 
+type ActiveCell = {
+  rowId: string
+  columnId: string
+}
+
 type SheetStore = {
   document: SheetDocument
   selectedColumnId?: string
+  activeRowId?: string
+  activeCell?: ActiveCell
   status: SheetStatus
   message: string
   load: () => Promise<void>
@@ -24,12 +31,16 @@ type SheetStore = {
   addRow: () => void
   removeRow: (rowId: string) => void
   updateCell: (rowId: string, columnId: string, value: CellValue) => void
+  selectRow: (rowId: string) => void
+  selectCell: (rowId: string, columnId: string) => void
   selectColumn: (columnId: string) => void
 }
 
 export const useSheetStore = create<SheetStore>((set, get) => ({
   document: createSheetDocument(),
   selectedColumnId: undefined,
+  activeRowId: undefined,
+  activeCell: undefined,
   status: 'idle',
   message: '',
   async load() {
@@ -39,6 +50,8 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
       set({
         document: loaded ?? createSheetDocument(),
         selectedColumnId: (loaded ?? get().document).columns[0]?.id,
+        activeRowId: (loaded ?? get().document).rows[0]?.id,
+        activeCell: undefined,
         status: 'saved',
         message: loaded ? 'Loaded from this browser' : 'Started sample sheet',
       })
@@ -56,7 +69,7 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
     }
   },
   setDocument(document, message = 'Document replaced') {
-    set({ document, selectedColumnId: document.columns[0]?.id, status: 'idle', message })
+    set({ document, selectedColumnId: document.columns[0]?.id, activeRowId: document.rows[0]?.id, activeCell: undefined, status: 'idle', message })
   },
   setError(message) {
     set({ status: 'error', message })
@@ -84,22 +97,41 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
   removeColumn(columnId) {
     set((state) => {
       const document = removeColumn(state.document, columnId)
+      const selectedColumnId = state.selectedColumnId === columnId ? document.columns[0]?.id : state.selectedColumnId
+      const activeCell = state.activeCell?.columnId === columnId ? undefined : state.activeCell
       return {
         document,
-        selectedColumnId: document.columns[0]?.id,
+        selectedColumnId,
+        activeCell,
         status: 'idle',
         message: 'Column removed',
       }
     })
   },
   addRow() {
-    set((state) => ({ document: addRow(state.document), status: 'idle', message: 'Row added' }))
+    set((state) => {
+      const document = addRow(state.document)
+      const rowId = document.rows.at(-1)?.id
+      return { document, activeRowId: rowId, activeCell: undefined, status: 'idle', message: 'Row added' }
+    })
   },
   removeRow(rowId) {
-    set((state) => ({ document: removeRow(state.document, rowId), status: 'idle', message: 'Row removed' }))
+    set((state) => {
+      const document = removeRow(state.document, rowId)
+      const activeRowId = state.activeRowId === rowId ? document.rows[0]?.id : state.activeRowId
+      const activeCell = state.activeCell?.rowId === rowId ? undefined : state.activeCell
+
+      return { document, activeRowId, activeCell, status: 'idle', message: 'Row removed' }
+    })
   },
   updateCell(rowId, columnId, value) {
     set((state) => ({ document: updateCell(state.document, rowId, columnId, value), status: 'idle', message: 'Cell updated' }))
+  },
+  selectRow(rowId) {
+    set({ activeRowId: rowId })
+  },
+  selectCell(rowId, columnId) {
+    set({ activeRowId: rowId, activeCell: { rowId, columnId }, selectedColumnId: columnId })
   },
   selectColumn(columnId) {
     set({ selectedColumnId: columnId })

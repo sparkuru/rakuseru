@@ -100,13 +100,24 @@ textarea {
 
 .toolbar-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   justify-content: flex-end;
 }
 
+.action-group {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px;
+  border: 1px solid #d7dde2;
+  border-radius: 8px;
+  background: #f8fafb;
+}
+
 .icon-button,
-.primary-button {
+.primary-button,
+.text-icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -119,7 +130,8 @@ textarea {
 }
 
 .icon-button:hover,
-.primary-button:hover {
+.primary-button:hover,
+.text-icon-button:hover {
   border-color: #7b8a99;
 }
 
@@ -141,6 +153,13 @@ textarea {
   font-weight: 700;
 }
 
+.text-icon-button {
+  gap: 6px;
+  min-width: 74px;
+  padding: 0 10px;
+  font-weight: 650;
+}
+
 .compact-select {
   width: 130px;
 }
@@ -148,16 +167,22 @@ textarea {
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
+  height: 100%;
   min-height: 0;
 }
 
 .sheet-surface {
   min-width: 0;
   min-height: 0;
+  background:
+    linear-gradient(#edf1f3 1px, transparent 1px),
+    linear-gradient(90deg, #edf1f3 1px, transparent 1px),
+    #f5f7f8;
+  background-size: 28px 28px;
 }
 
 .table-scroll {
-  height: calc(100vh - 61px);
+  height: 100%;
   overflow: auto;
 }
 
@@ -177,6 +202,9 @@ textarea {
   border-bottom: 1px solid #dfe4e8;
   padding: 6px;
   vertical-align: top;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .sheet-table th {
@@ -184,6 +212,42 @@ textarea {
   top: 0;
   z-index: 2;
   background: #eef3f2;
+}
+
+.sheet-table tbody tr:hover td {
+  background: #fbfcfd;
+}
+
+.sheet-table tr.active-row td {
+  background: #f7fbfa;
+}
+
+.sheet-table th.selected-column {
+  background: #e3efed;
+}
+
+.sheet-table td.selected-column {
+  background: #f6fbfa;
+}
+
+.sheet-table td.active-cell {
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 0 2px #0f6b63;
+}
+
+.row-actions-cell {
+  text-align: center;
+}
+
+.row-delete-button {
+  opacity: 0.35;
+}
+
+.sheet-table tr:hover .row-delete-button,
+.sheet-table tr.active-row .row-delete-button,
+.row-delete-button:focus-visible {
+  opacity: 1;
 }
 
 .header-button {
@@ -239,27 +303,45 @@ textarea {
 .multi-select-cell {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   min-width: 180px;
 }
 
-.multi-select-cell label,
 .checkbox-field {
   display: inline-flex;
   gap: 6px;
   align-items: center;
 }
 
-.multi-select-cell input,
 .checkbox-field input {
   width: auto;
+}
+
+.choice-chip {
+  min-height: 26px;
+  border: 1px solid #cbd3da;
+  border-radius: 999px;
+  padding: 3px 9px;
+  color: #34404d;
+  background: #ffffff;
+}
+
+.choice-chip:hover {
+  border-color: #8a99a7;
+}
+
+.choice-chip.selected {
+  color: #0b4f49;
+  border-color: #72aaa4;
+  background: #e8f3f1;
+  font-weight: 650;
 }
 
 .image-cell {
   width: 164px;
 }
 
-.image-cell figure {
+.image-preview {
   position: relative;
   display: grid;
   gap: 4px;
@@ -271,6 +353,7 @@ textarea {
   max-height: 110px;
   object-fit: cover;
   border-radius: 6px;
+  border: 1px solid #d9e0e5;
 }
 
 .image-cell figcaption {
@@ -279,6 +362,19 @@ textarea {
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.image-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.image-preview:hover .image-actions,
+.image-actions:focus-within {
+  opacity: 1;
 }
 
 .image-drop {
@@ -290,6 +386,7 @@ textarea {
   border-radius: 6px;
   color: #66717d;
   background: #f8fafb;
+  text-align: center;
 }
 
 .image-drop input {
@@ -299,7 +396,7 @@ textarea {
 .schema-panel {
   display: grid;
   align-content: start;
-  gap: 14px;
+  gap: 12px;
   min-height: 0;
   padding: 16px;
   border-left: 1px solid #d7dde2;
@@ -320,11 +417,68 @@ textarea {
   font-size: 18px;
 }
 
+.panel-section {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e2e7eb;
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
 .two-column-fields {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: end;
+}
+
+.danger-zone {
+  border-color: #f0d6d7;
+  background: #fffafa;
+}
+
+.danger-action,
+.danger-text-button,
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: transparent;
+}
+
+.danger-action,
+.danger-text-button {
+  color: #ad2f31;
+}
+
+.danger-action:hover,
+.danger-text-button:hover {
+  border-color: #e4b7b8;
+  background: #fff1f1;
+}
+
+.text-button {
+  color: #33404d;
+}
+
+.text-button:hover {
+  border-color: #cbd3da;
+  background: #ffffff;
+}
+
+.confirm-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  color: #6c3739;
+  font-size: 13px;
 }
 
 .visually-hidden {
@@ -346,6 +500,10 @@ textarea {
     overflow-x: auto;
   }
 
+  .action-group {
+    flex: 0 0 auto;
+  }
+
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -357,5 +515,9 @@ textarea {
 
   .table-scroll {
     height: 60vh;
+  }
+
+  .confirm-row {
+    grid-template-columns: 1fr;
   }
 }

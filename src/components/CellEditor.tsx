@@ -60,18 +60,19 @@ export function CellEditor({ row, column }: CellEditorProps) {
     case 'multiSelect': {
       const selected = Array.isArray(value) ? value : []
       return (
-        <div className="multi-select-cell">
+        <div className="multi-select-cell" role="group" aria-label={`${column.title} options`}>
           {(column.options ?? []).map((option) => (
-            <label key={option}>
-              <input
-                type="checkbox"
-                checked={selected.includes(option)}
-                onChange={(event) => {
-                  commit(event.target.checked ? [...selected, option] : selected.filter((item) => item !== option))
-                }}
-              />
-              <span>{option}</span>
-            </label>
+            <button
+              key={option}
+              type="button"
+              className={selected.includes(option) ? 'choice-chip selected' : 'choice-chip'}
+              aria-pressed={selected.includes(option)}
+              onClick={() => {
+                commit(selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option])
+              }}
+            >
+              {option}
+            </button>
           ))}
         </div>
       )
@@ -80,17 +81,19 @@ export function CellEditor({ row, column }: CellEditorProps) {
       return (
         <div className="image-cell" onPaste={(event) => void handlePaste(event)}>
           {isImageValue(value) ? (
-            <figure>
+            <figure className="image-preview">
               <img src={value.dataUrl} alt={value.name} />
-              <figcaption>{value.name}</figcaption>
-              <button type="button" className="icon-button ghost" onClick={() => commit('')} title="Clear image" aria-label="Clear image">
-                <X size={14} />
-              </button>
+              <figcaption title={value.name}>{value.name}</figcaption>
+              <div className="image-actions">
+                <button type="button" className="icon-button ghost" onClick={() => commit('')} title="Clear image" aria-label="Clear image">
+                  <X size={14} />
+                </button>
+              </div>
             </figure>
           ) : (
             <label className="image-drop">
               <ImageIcon size={16} />
-              <span>Paste or upload</span>
+              <span>Paste image or upload</span>
               <input type="file" accept="image/*" onChange={(event: ChangeEvent<HTMLInputElement>) => void commitImage(event.target.files?.[0])} />
             </label>
           )}

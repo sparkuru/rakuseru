@@ -56,45 +56,54 @@ export function Toolbar({ statusLabel }: ToolbarProps) {
       </label>
 
       <div className="toolbar-actions" aria-label="Sheet actions">
-        <button type="button" className="icon-button" onClick={addRow} title="Add row" aria-label="Add row">
-          <Plus size={18} />
-        </button>
-        <select
-          className="compact-select"
-          aria-label="Add column type"
-          defaultValue=""
-          onChange={(event) => {
-            if (event.target.value) {
-              addColumn(event.target.value as (typeof COLUMN_TYPES)[number])
-              event.target.value = ''
-            }
-          }}
-        >
-          <option value="" disabled>
-            Add column
-          </option>
-          {COLUMN_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {type}
+        <div className="action-group" aria-label="Structure actions">
+          <button type="button" className="text-icon-button" onClick={addRow} title="Add row" aria-label="Add row">
+            <Plus size={18} />
+            <span>Row</span>
+          </button>
+          <select
+            className="compact-select"
+            aria-label="Add column type"
+            defaultValue=""
+            onChange={(event) => {
+              if (event.target.value) {
+                addColumn(event.target.value as (typeof COLUMN_TYPES)[number])
+                event.target.value = ''
+              }
+            }}
+          >
+            <option value="" disabled>
+              Add column
             </option>
-          ))}
-        </select>
+            {COLUMN_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={(event) => void handleImport(event.target.files?.[0])} />
-        <button type="button" className="icon-button" onClick={() => fileInputRef.current?.click()} title="Import JSON" aria-label="Import JSON">
-          <Upload size={18} />
-        </button>
-        <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.json`, exportJson(document), 'application/json')} title="Export JSON" aria-label="Export JSON">
-          <FileJson size={18} />
-        </button>
-        <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.md`, exportMarkdown(document), 'text/markdown')} title="Export Markdown" aria-label="Export Markdown">
-          <FileDown size={18} />
-        </button>
-        <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.csv`, exportCsv(document), 'text/csv')} title="Export CSV" aria-label="Export CSV">
-          <Download size={18} />
-        </button>
-        <button type="button" className="primary-button" onClick={() => void exportXlsxBlob(document).then((blob) => downloadBlob(`${document.title}.xlsx`, blob))}>
-          XLSX
-        </button>
+        <div className="action-group" aria-label="Import actions">
+          <button type="button" className="icon-button" onClick={() => fileInputRef.current?.click()} title="Import JSON" aria-label="Import JSON">
+            <Upload size={18} />
+          </button>
+        </div>
+
+        <div className="action-group" aria-label="Export actions">
+          <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.json`, exportJson(document), 'application/json')} title="Export JSON" aria-label="Export JSON">
+            <FileJson size={18} />
+          </button>
+          <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.md`, exportMarkdown(document), 'text/markdown')} title="Export Markdown" aria-label="Export Markdown">
+            <FileDown size={18} />
+          </button>
+          <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.csv`, exportCsv(document), 'text/csv')} title="Export CSV" aria-label="Export CSV">
+            <Download size={18} />
+          </button>
+          <button type="button" className="primary-button" onClick={() => void exportXlsxBlob(document).then((blob) => downloadBlob(`${document.title}.xlsx`, blob))}>
+            XLSX
+          </button>
+        </div>
       </div>
     </header>
   )

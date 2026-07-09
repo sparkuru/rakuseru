@@ -29,6 +29,24 @@ Rakuseru opens directly into the working editor. Do not add landing-page or mark
 - Inputs and selects should be wrapped in visible labels when space allows; see `src/components/HeaderEditor.tsx`.
 - Interactive table headers should remain keyboard-clickable buttons for schema selection.
 
+## Interaction Event Boundaries
+
+When a table cell or row wrapper contains interactive child controls, update wrapper selection state on `click`, not `pointerdown`. A `pointerdown` handler can re-render the cell before the child button/select/input receives its own `click` or `change`, dropping actions such as multi-select chip toggles.
+
+```tsx
+// Good: child controls handle their event first, then the cell records selection.
+<td onClick={() => selectCell(rowId, columnId)}>
+  <button type="button" onClick={toggleChoice}>待确认</button>
+</td>
+```
+
+```tsx
+// Bad: this can re-render before the child control click is delivered.
+<td onPointerDown={() => selectCell(rowId, columnId)}>
+  <button type="button" onClick={toggleChoice}>待确认</button>
+</td>
+```
+
 ## Anti-Patterns
 
 - Parsing imported JSON in a component.
