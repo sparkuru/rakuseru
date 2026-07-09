@@ -86,6 +86,22 @@ Rows and columns should move through Typora-style drag handles, not arrow-button
 - movement must call model/store helpers instead of mutating arrays in components;
 - movement should clear stale cell framing when the user has switched into row or column context.
 
+## Export Preview Pattern
+
+Export actions should open a review surface before download. The toolbar owns the selected format and file-download event, while the preview component owns display of validation issues and preview content.
+
+Keep preview generation aligned with adapters:
+
+- CSV preview should call `exportCsv(document)`.
+- JSON preview should call `exportJson(document)`.
+- Markdown preview should call `exportMarkdown(document)`.
+- Excel preview should render an HTML table approximation from document rows and columns.
+- `exportXlsxBlob(document)` should run only after the user confirms download, so ExcelJS remains lazy-loaded.
+
+Validation issues in preview are warnings for export, not hard blocks. JSON export must stay available as the lossless backup format even when content validation reports issues.
+
+Issue rows should be keyboard-accessible buttons when they can select a target cell. Selecting an issue should call the store selection action from the parent boundary, not mutate selection inside the preview component.
+
 ## Anti-Patterns
 
 - Parsing imported JSON in a component.

@@ -8,6 +8,7 @@ import { GripHorizontal, GripVertical, Trash2 } from 'lucide-react'
 import { useCallback, useMemo, useState, type DragEvent as ReactDragEvent, type PointerEvent as ReactPointerEvent } from 'react'
 
 import { COLUMN_TYPE_LABELS } from '../model/column'
+import type { ValidationIssue } from '../model/contentValidation'
 import type { RowData } from '../model/document'
 import { useSheetStore } from '../state/sheetStore'
 import { CellEditor } from './CellEditor'
@@ -19,7 +20,11 @@ function joinClassNames(...classNames: Array<string | false | undefined>): strin
 const COLUMN_DRAG_TYPE = 'application/x-rakuseru-column-id'
 const ROW_DRAG_TYPE = 'application/x-rakuseru-row-id'
 
-export function SheetView() {
+type SheetViewProps = {
+  validationIssues: ValidationIssue[]
+}
+
+export function SheetView({ validationIssues }: SheetViewProps) {
   const document = useSheetStore((state) => state.document)
   const removeRow = useSheetStore((state) => state.removeRow)
   const moveRowToIndex = useSheetStore((state) => state.moveRowToIndex)
@@ -35,6 +40,20 @@ export function SheetView() {
   const [draggingRowId, setDraggingRowId] = useState<string>()
   const [columnDropId, setColumnDropId] = useState<string>()
   const [rowDropId, setRowDropId] = useState<string>()
+  const issueByCell = useMemo(() => {
+    const issues = new Map<string, ValidationIssue[]>()
+
+    for (const issue of validationIssues) {
+      if (!issue.rowId || !issue.columnId) {
+        continue
+      }
+
+      const key = `${issue.rowId}:${issue.columnId}`
+      issues.set(key, [...(issues.get(key) ?? []), issue])
+    }
+
+    return issues
+  }, [validationIssues])
 
   const startColumnResize = useCallback((columnId: string, width: number, event: ReactPointerEvent<HTMLSpanElement>) => {
     event.preventDefault()
@@ -271,6 +290,7 @@ export function SheetView() {
                   const isActiveCell = activeCell?.rowId === row.original.id && activeCell.columnId === cell.column.id
                   const xCoordinate = document.columns.findIndex((column) => column.id === cell.column.id) + 1
                   const yCoordinate = document.rows.findIndex((documentRow) => documentRow.id === row.original.id) + 1
+                  const cellIssues = issueByCell.get(`${row.original.id}:${cell.column.id}`) ?? []
 
                   return (
                     <td
@@ -279,6 +299,7 @@ export function SheetView() {
                         cell.column.id === '_rowActions' && 'row-actions-cell',
                         cell.column.id === selectedColumnId && 'selected-column',
                         isActiveCell && 'active-cell',
+                        cellIssues.length > 0 && 'validation-cell',
                       )}
                       onClick={() => {
                         if (!isDataCell) {
@@ -290,6 +311,7 @@ export function SheetView() {
                       }}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {isDataCell && cellIssues.length > 0 && <span className="validation-marker" title={cellIssues.map((issue) => issue.message).join('\n')} aria-label="校验问题" />}
                       {isDataCell && isActiveCell && <span className="cell-coordinate">{`(x${xCoordinate},y${yCoordinate})`}</span>}
                     </td>
                   )

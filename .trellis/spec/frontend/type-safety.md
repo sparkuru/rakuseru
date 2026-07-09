@@ -24,6 +24,86 @@ validateSheetDocument(input: unknown): ValidationResult<SheetDocument>
 
 Bad imports should return user-readable error strings. Valid imports should return a version-1 `SheetDocument` with row cells aligned to current column ids.
 
+## Active Sheet Content Validation
+
+Content validation for already-loaded editor documents lives in `src/model/contentValidation.ts`. Keep it separate from `validateSheetDocument`: import/storage validation protects the app from untrusted structure, while content validation reports user-facing quality issues on a trusted `SheetDocument`.
+
+### 1. Scope / Trigger
+
+- Trigger: export preview, validation markers, and validation summaries need the same issue contract without mutating document state.
+- Scope: `src/model/contentValidation.ts`, table markers, toolbar validation summary, and export preview.
+
+### 2. Signatures
+
+```ts
+type ValidationSeverity = 'warning' | 'error'
+
+type ValidationIssue = {
+  id: string
+  severity: ValidationSeverity
+  rowId?: string
+  columnId?: string
+  x?: number
+  y?: number
+  columnTitle?: string
+  locationLabel: string
+  message: string
+}
+
+validateDocumentContent(document: SheetDocument): ValidationIssue[]
+```
+
+### 3. Contracts
+
+- `validateDocumentContent` accepts a canonical `SheetDocument`, not `unknown`.
+- Issues should include stable row/column ids when the problem belongs to a cell.
+- `x` and `y` are one-based data coordinates. The row-number/action column is not counted as `x`.
+- `locationLabel` should be display-ready, for example `(x1,y2) 物品`.
+- The helper reports issues only. It must not coerce, repair, select, save, or export data.
+
+### 4. Validation & Error Matrix
+
+- Required text/link/single-select with trimmed empty string -> error.
+- Required number/money with non-finite or non-number value -> error; `0` is valid.
+- Required multi-select with empty array -> error.
+- Required image without a valid `ImageValue` -> error.
+- Non-empty link that is not absolute `http:` or `https:` -> error.
+- Single-select value not in configured options -> error.
+- Multi-select values not in configured options -> error.
+- Select value present when the column has no options -> warning.
+- Non-empty image value that fails `isImageValue` -> error.
+
+### 5. Good/Base/Bad Cases
+
+- Good: export preview calls `validateDocumentContent(document)` and shows warnings while still allowing confirmed export.
+- Base: empty optional fields produce no issues.
+- Bad: reusing `validateSheetDocument` for active-sheet quality checks or casting untrusted imports to `SheetDocument`.
+
+### 6. Tests Required
+
+- Required validation across string, number, array, image, and empty cells.
+- Link URL validation with coordinates and location labels.
+- Single-select and multi-select option validation, including the no-options warning case when behavior changes.
+- Unit tests should assert `0` remains valid for required numeric/money cells.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+const document = parsedJson as SheetDocument
+const issues = validateDocumentContent(document)
+```
+
+Correct:
+
+```ts
+const result = validateSheetDocument(parsedJson)
+if (result.ok) {
+  const issues = validateDocumentContent(result.value)
+}
+```
+
 ## JSON Import Error Contract
 
 ### 1. Scope / Trigger

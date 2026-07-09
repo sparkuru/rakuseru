@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { EditorSidePanel } from '../components/EditorSidePanel'
 import { SheetView } from '../components/SheetView'
 import { Toolbar } from '../components/Toolbar'
+import { validateDocumentContent } from '../model/contentValidation'
 import { useSheetStore } from '../state/sheetStore'
 
 export function App() {
@@ -44,11 +45,13 @@ export function App() {
     return message || 'Ready'
   }, [message, status])
 
+  const validationIssues = useMemo(() => validateDocumentContent(document), [document])
+
   return (
     <main className="app-shell">
-      <Toolbar statusLabel={statusLabel} />
+      <Toolbar statusLabel={statusLabel} validationIssues={validationIssues} />
       <section className={sidePanelCollapsed ? 'workspace side-panel-collapsed' : 'workspace'} aria-label="Rakuseru sheet workspace">
-        <SheetView />
+        <SheetView validationIssues={validationIssues} />
         <EditorSidePanel />
       </section>
     </main>

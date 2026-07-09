@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { addColumn, createColumn, moveColumn, moveColumnToIndex, updateColumn } from './column'
+import { validateDocumentContent } from './contentValidation'
 import { createSheetDocument } from './document'
 import { addRow, moveRow, moveRowToIndex, removeRow, updateCell } from './row'
 import { validateSheetDocument } from './validation'
@@ -126,6 +127,66 @@ describe('SheetDocument model', () => {
     if (result.ok) {
       expect(result.value.rows[0].cells[imageColumn.id]).toEqual(input.rows[0].cells[imageColumn.id])
     }
+  })
+
+  it('reports required content issues across column types', () => {
+    const document = createSheetDocument()
+    const textColumn = document.columns.find((column) => column.type === 'text')!
+    const singleSelectColumn = document.columns.find((column) => column.type === 'singleSelect')!
+    const multiSelectColumn = document.columns.find((column) => column.type === 'multiSelect')!
+    const imageColumn = document.columns.find((column) => column.type === 'image')!
+    const requiredDocument = [textColumn, singleSelectColumn, multiSelectColumn, imageColumn].reduce(
+      (current, column) => updateColumn(current, column.id, { required: true }),
+      document,
+    )
+    const issues = validateDocumentContent(requiredDocument)
+
+    expect(issues.map((issue) => issue.id)).toContain(`${document.rows[0].id}:${textColumn.id}:required`)
+    expect(issues.map((issue) => issue.id)).toContain(`${document.rows[0].id}:${singleSelectColumn.id}:required`)
+    expect(issues.map((issue) => issue.id)).toContain(`${document.rows[0].id}:${multiSelectColumn.id}:required`)
+    expect(issues.map((issue) => issue.id)).toContain(`${document.rows[0].id}:${imageColumn.id}:required`)
+    expect(issues.every((issue) => issue.severity === 'error')).toBe(true)
+  })
+
+  it('keeps zero as a valid required numeric value', () => {
+    const document = createSheetDocument()
+    const numberColumn = document.columns.find((column) => column.type === 'number')!
+    const next = updateColumn(document, numberColumn.id, { required: true })
+
+    expect(validateDocumentContent(next).some((issue) => issue.columnId === numberColumn.id)).toBe(false)
+  })
+
+  it('reports invalid link values with coordinates', () => {
+    const document = createSheetDocument()
+    const linkColumn = document.columns.find((column) => column.type === 'link')!
+    const next = updateCell(document, document.rows[0].id, linkColumn.id, 'not-a-url')
+    const issues = validateDocumentContent(next)
+    const issue = issues.find((candidate) => candidate.id === `${document.rows[0].id}:${linkColumn.id}:link`)
+
+    expect(issue).toMatchObject({
+      severity: 'error',
+      x: document.columns.findIndex((column) => column.id === linkColumn.id) + 1,
+      y: 1,
+      locationLabel: `(x7,y1) ${linkColumn.title}`,
+    })
+  })
+
+  it('reports select values not present in configured options', () => {
+    const document = createSheetDocument()
+    const singleSelectColumn = document.columns.find((column) => column.type === 'singleSelect')!
+    const multiSelectColumn = document.columns.find((column) => column.type === 'multiSelect')!
+    const editedSingle = {
+      ...document,
+      rows: document.rows.map((row, index) => index === 0 ? { ...row, cells: { ...row.cells, [singleSelectColumn.id]: '其他' } } : row),
+    }
+    const editedMulti = {
+      ...editedSingle,
+      rows: editedSingle.rows.map((row, index) => index === 0 ? { ...row, cells: { ...row.cells, [multiSelectColumn.id]: ['待确认', '其他'] } } : row),
+    }
+    const issues = validateDocumentContent(editedMulti)
+
+    expect(issues.map((issue) => issue.id)).toContain(`${document.rows[0].id}:${singleSelectColumn.id}:single-select`)
+    expect(issues.map((issue) => issue.id)).toContain(`${document.rows[0].id}:${multiSelectColumn.id}:multi-select`)
   })
 
   it('rejects invalid imports', () => {
