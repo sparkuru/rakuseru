@@ -81,6 +81,7 @@ export function isImageValue(value: unknown): value is Extract<CellValue, { kind
     candidate.kind === 'image' &&
     typeof candidate.name === 'string' &&
     typeof candidate.mime === 'string' &&
-    typeof candidate.dataUrl === 'string'
+    typeof candidate.dataUrl === 'string' &&
+    (candidate.fit === undefined || candidate.fit === 'contain' || candidate.fit === 'cover' || candidate.fit === 'fill' || candidate.fit === 'center')
   )
 }

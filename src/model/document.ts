@@ -29,11 +29,14 @@ export type RowData = {
   cells: Record<string, CellValue>
 }
 
+export type ImageFit = 'contain' | 'cover' | 'fill' | 'center'
+
 export type ImageCellValue = {
   kind: 'image'
   name: string
   mime: string
   dataUrl: string
+  fit?: ImageFit
 }
 
 export type CellValue = string | number | string[] | ImageCellValue

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 
-import { HeaderEditor } from '../components/HeaderEditor'
+import { EditorSidePanel } from '../components/EditorSidePanel'
 import { SheetView } from '../components/SheetView'
 import { Toolbar } from '../components/Toolbar'
 import { useSheetStore } from '../state/sheetStore'
@@ -11,6 +11,7 @@ export function App() {
   const save = useSheetStore((state) => state.save)
   const status = useSheetStore((state) => state.status)
   const message = useSheetStore((state) => state.message)
+  const sidePanelCollapsed = useSheetStore((state) => state.sidePanelCollapsed)
   const hasLoaded = useRef(false)
 
   useEffect(() => {
@@ -46,9 +47,9 @@ export function App() {
   return (
     <main className="app-shell">
       <Toolbar statusLabel={statusLabel} />
-      <section className="workspace" aria-label="Rakuseru sheet workspace">
+      <section className={sidePanelCollapsed ? 'workspace side-panel-collapsed' : 'workspace'} aria-label="Rakuseru sheet workspace">
         <SheetView />
-        <HeaderEditor />
+        <EditorSidePanel />
       </section>
     </main>
   )

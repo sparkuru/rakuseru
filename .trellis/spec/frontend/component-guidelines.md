@@ -47,6 +47,45 @@ When a table cell or row wrapper contains interactive child controls, update wra
 </td>
 ```
 
+## Cell Editing Pattern
+
+Use table cells as readable grid content first. Do not embed heavy text/link/image form controls directly inside every cell; it makes the table look like nested forms and reduces scanability. For text, link, number, money, and image cells, render a compact display state in the grid and put the larger editing controls in the right-side cell editor panel.
+
+Keep direct in-cell controls only when they materially improve fast editing:
+
+- `singleSelect`: native select is acceptable when the column has configured options.
+- `multiSelect`: chip toggles are acceptable when the column has configured options.
+- empty select options: show a setup affordance that opens column schema editing instead of rendering a blank dropdown.
+
+When adding new cell types, choose between display-plus-panel and direct in-cell editing based on scanability, not implementation convenience.
+
+## Column Schema Controls
+
+Column schema controls should communicate the kind of value being edited:
+
+- Boolean properties use switch-style toggles, not bare checkboxes.
+- Enumerated properties use selects.
+- Freeform text or numeric properties use inputs.
+
+Keep switch rows centered within their property blocks so schema panels read as editable property groups, not mixed form fragments.
+
+## Table Selection And Resize
+
+Header selection and cell selection are different modes. Clicking a table header should switch to column context, clear the active cell frame, and show column schema editing. Clicking a data cell should switch to cell context and may show the right-side cell editor.
+
+Column width resizing belongs only in headers. Do not add body-cell resize handles. If `lockedWidth` is true, keep a visible disabled resize affordance in the header and ignore resize attempts.
+
+The first visible table column is a row-number/action column, not document data. Coordinate badges for active cells should use one-based data coordinates that exclude this action column: the first editable data cell is `(x1,y1)`.
+
+Rows and columns should move through Typora-style drag handles, not arrow-button controls:
+
+- row movement handles sit at the midpoint of the row-number column's left border;
+- column movement handles sit at the midpoint of the header's top border;
+- handles should use native drag/drop to move the row or column to the drop target's index;
+- row drag-over feedback should be a vertical marker on the row-number column's left side, not a full-row horizontal line;
+- movement must call model/store helpers instead of mutating arrays in components;
+- movement should clear stale cell framing when the user has switched into row or column context.
+
 ## Anti-Patterns
 
 - Parsing imported JSON in a component.

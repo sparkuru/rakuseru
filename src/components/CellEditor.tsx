@@ -1,52 +1,50 @@
-import { Link, Image as ImageIcon, X } from 'lucide-react'
-import type { ChangeEvent, ClipboardEvent } from 'react'
+import { Image as ImageIcon, Link } from 'lucide-react'
 
-import { isImageValue } from '../model/cell'
-import type { CellValue, ColumnDef, RowData } from '../model/document'
+import { isImageValue, stringifyCellValue } from '../model/cell'
+import type { CellValue, ColumnDef, ImageFit, RowData } from '../model/document'
 import { useSheetStore } from '../state/sheetStore'
-import { readImageFile } from '../utils/image'
 
 type CellEditorProps = {
   row: RowData
   column: ColumnDef
 }
 
+const IMAGE_FIT_CLASS: Record<ImageFit, string> = {
+  contain: 'fit-contain',
+  cover: 'fit-cover',
+  fill: 'fit-fill',
+  center: 'fit-center',
+}
+
 export function CellEditor({ row, column }: CellEditorProps) {
   const updateCell = useSheetStore((state) => state.updateCell)
+  const selectColumn = useSheetStore((state) => state.selectColumn)
   const value = row.cells[column.id] ?? ''
 
   function commit(nextValue: CellValue) {
     updateCell(row.id, column.id, nextValue)
   }
 
-  async function commitImage(file: File | undefined) {
-    if (!file) {
-      return
-    }
-
-    commit(await readImageFile(file))
-  }
-
-  async function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
-    const imageItem = Array.from(event.clipboardData.files).find((file) => file.type.startsWith('image/'))
-    if (imageItem) {
-      event.preventDefault()
-      await commitImage(imageItem)
-    }
-  }
-
   switch (column.type) {
     case 'number':
     case 'money':
-      return (
-        <input
-          className="cell-input numeric"
-          type="number"
-          value={typeof value === 'number' ? value : 0}
-          onChange={(event) => commit(Number(event.target.value))}
-        />
-      )
+      return <span className="cell-display numeric-display">{typeof value === 'number' ? value : stringifyCellValue(value)}</span>
     case 'singleSelect':
+      if (!(column.options ?? []).length) {
+        return (
+          <button
+            type="button"
+            className="cell-setup-button"
+            onClick={(event) => {
+              event.stopPropagation()
+              selectColumn(column.id)
+            }}
+          >
+            配置选项
+          </button>
+        )
+      }
+
       return (
         <select className="cell-input" value={typeof value === 'string' ? value : ''} onChange={(event) => commit(event.target.value)}>
           <option value="">-</option>
@@ -58,6 +56,21 @@ export function CellEditor({ row, column }: CellEditorProps) {
         </select>
       )
     case 'multiSelect': {
+      if (!(column.options ?? []).length) {
+        return (
+          <button
+            type="button"
+            className="cell-setup-button"
+            onClick={(event) => {
+              event.stopPropagation()
+              selectColumn(column.id)
+            }}
+          >
+            配置选项
+          </button>
+        )
+      }
+
       const selected = Array.isArray(value) ? value : []
       return (
         <div className="multi-select-cell" role="group" aria-label={`${column.title} options`}>
@@ -79,34 +92,32 @@ export function CellEditor({ row, column }: CellEditorProps) {
     }
     case 'image':
       return (
-        <div className="image-cell" onPaste={(event) => void handlePaste(event)}>
+        <div className="image-cell">
           {isImageValue(value) ? (
-            <figure className="image-preview">
+            <figure className={`image-preview ${IMAGE_FIT_CLASS[value.fit ?? 'cover']}`}>
               <img src={value.dataUrl} alt={value.name} />
               <figcaption title={value.name}>{value.name}</figcaption>
-              <div className="image-actions">
-                <button type="button" className="icon-button ghost" onClick={() => commit('')} title="Clear image" aria-label="Clear image">
-                  <X size={14} />
-                </button>
-              </div>
             </figure>
           ) : (
-            <label className="image-drop">
+            <div className="image-empty">
               <ImageIcon size={16} />
-              <span>Paste image or upload</span>
-              <input type="file" accept="image/*" onChange={(event: ChangeEvent<HTMLInputElement>) => void commitImage(event.target.files?.[0])} />
-            </label>
+              <span>选择图片</span>
+            </div>
           )}
         </div>
       )
-    case 'link':
+    case 'link': {
+      const link = typeof value === 'string' ? value : stringifyCellValue(value)
       return (
-        <label className="link-cell">
+        <span className={link ? 'cell-display link-display' : 'cell-display muted'}>
           <Link size={14} aria-hidden="true" />
-          <input className="cell-input" type="url" value={typeof value === 'string' ? value : ''} onChange={(event) => commit(event.target.value)} />
-        </label>
+          <span>{link || '空链接'}</span>
+        </span>
       )
-    case 'text':
-      return <textarea className="cell-input text-cell" value={typeof value === 'string' ? value : ''} onChange={(event) => commit(event.target.value)} />
+    }
+    case 'text': {
+      const text = typeof value === 'string' ? value : stringifyCellValue(value)
+      return <span className={text ? 'cell-display text-display' : 'cell-display muted'}>{text || '空白'}</span>
+    }
   }
 }

@@ -1,12 +1,12 @@
-import { Download, FileDown, FileJson, Plus, Sheet, Upload } from 'lucide-react'
-import { useRef } from 'react'
+import { Plus, Sheet, Upload } from 'lucide-react'
+import { useRef, useState } from 'react'
 
 import { exportCsv } from '../adapters/exportCsv'
 import { exportJson } from '../adapters/exportJson'
 import { exportMarkdown } from '../adapters/exportMarkdown'
 import { exportXlsxBlob } from '../adapters/exportXlsx'
 import { importJson } from '../adapters/importJson'
-import { COLUMN_TYPES } from '../model/column'
+import { COLUMN_TYPES, COLUMN_TYPE_LABELS } from '../model/column'
 import { useSheetStore } from '../state/sheetStore'
 import { downloadBlob, downloadText } from '../utils/download'
 
@@ -14,8 +14,11 @@ type ToolbarProps = {
   statusLabel: string
 }
 
+type ExportFormat = 'csv' | 'json' | 'markdown' | 'excel'
+
 export function Toolbar({ statusLabel }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv')
   const document = useSheetStore((state) => state.document)
   const setTitle = useSheetStore((state) => state.setTitle)
   const addColumn = useSheetStore((state) => state.addColumn)
@@ -37,6 +40,23 @@ export function Toolbar({ statusLabel }: ToolbarProps) {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  function handleExport(format: ExportFormat) {
+    switch (format) {
+      case 'csv':
+        downloadText(`${document.title}.csv`, exportCsv(document), 'text/csv')
+        return
+      case 'json':
+        downloadText(`${document.title}.json`, exportJson(document), 'application/json')
+        return
+      case 'markdown':
+        downloadText(`${document.title}.md`, exportMarkdown(document), 'text/markdown')
+        return
+      case 'excel':
+        void exportXlsxBlob(document).then((blob) => downloadBlob(`${document.title}.xlsx`, blob))
+        return
     }
   }
 
@@ -77,7 +97,7 @@ export function Toolbar({ statusLabel }: ToolbarProps) {
             </option>
             {COLUMN_TYPES.map((type) => (
               <option key={type} value={type}>
-                {type}
+                {COLUMN_TYPE_LABELS[type]}
               </option>
             ))}
           </select>
@@ -85,23 +105,26 @@ export function Toolbar({ statusLabel }: ToolbarProps) {
 
         <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={(event) => void handleImport(event.target.files?.[0])} />
         <div className="action-group" aria-label="Import actions">
-          <button type="button" className="icon-button" onClick={() => fileInputRef.current?.click()} title="Import JSON" aria-label="Import JSON">
+          <button type="button" className="text-icon-button" onClick={() => fileInputRef.current?.click()} title="导入 JSON" aria-label="导入 JSON">
             <Upload size={18} />
+            <span>导入 JSON</span>
           </button>
         </div>
 
         <div className="action-group" aria-label="Export actions">
-          <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.json`, exportJson(document), 'application/json')} title="Export JSON" aria-label="Export JSON">
-            <FileJson size={18} />
-          </button>
-          <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.md`, exportMarkdown(document), 'text/markdown')} title="Export Markdown" aria-label="Export Markdown">
-            <FileDown size={18} />
-          </button>
-          <button type="button" className="icon-button" onClick={() => downloadText(`${document.title}.csv`, exportCsv(document), 'text/csv')} title="Export CSV" aria-label="Export CSV">
-            <Download size={18} />
-          </button>
-          <button type="button" className="primary-button" onClick={() => void exportXlsxBlob(document).then((blob) => downloadBlob(`${document.title}.xlsx`, blob))}>
-            XLSX
+          <select
+            className="compact-select"
+            aria-label="选择导出格式"
+            value={exportFormat}
+            onChange={(event) => setExportFormat(event.target.value as ExportFormat)}
+          >
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+            <option value="markdown">Markdown</option>
+            <option value="excel">Excel</option>
+          </select>
+          <button type="button" className="primary-button" onClick={() => handleExport(exportFormat)} title="导出" aria-label="导出">
+            导出
           </button>
         </div>
       </div>
