@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 3
-- **Last Active**: 2026-07-02
+- **Total Sessions**: 4
+- **Last Active**: 2026-07-09
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~106 | Active |
+| `journal-1.md` | ~139 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 4 | 2026-07-09 | Polish editor interactions | `7ba1569` | `makuro-haado` |
 | 3 | 2026-07-02 | Harden contracts and dependency reproducibility | `3323b21` | `makuro-haado` |
 | 2 | 2026-07-02 | Bootstrap Trellis specs | `172b699` | `makuro-haado` |
 | 1 | 2026-07-01 | Rakuseru MVP frontend | `70fdb5f`, `1f9101e` | `makuro-haado` |

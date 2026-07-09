@@ -104,3 +104,36 @@ Pinned package dependency ranges to lockfile versions, added adapter contract te
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Polish editor interactions
+
+**Date**: 2026-07-09
+**Task**: Polish editor interactions
+**Branch**: `makuro-haado`
+
+### Summary
+
+Implemented the Rakuseru editor interaction polish pass: active row/cell/column selection, grouped toolbar and schema controls, chip multi-selects, cleaner image cells, browser smoke validation, and documented the cell event-boundary rule.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7ba1569` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
