@@ -183,7 +183,7 @@ Complex task: ask the user if you can create a Trellis task and enter the planni
 - 1.0 Create task `[required · once]` (only after task-creation consent)
 - 1.1 Requirement exploration `[required · repeatable]` (`prd.md`; complex tasks also need `design.md` + `implement.md`)
 - 1.2 Research `[optional · repeatable]`
-- 1.3 Configure context `[required · once]` — Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi (sub-agent-dispatch platforms only; inline platforms skip)
+- 1.3 Configure context `[required · once]` — Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix (sub-agent-dispatch platforms only; inline platforms skip)
 - 1.4 Activate task `[required · once]` (review gate, then `task.py start`; status → in_progress)
 - 1.5 Completion criteria
 
@@ -220,7 +220,7 @@ Inline mode: skip jsonl curation; Phase 2 reads artifacts/specs via `trellis-bef
      therefore must cover every required step from implementation through
      commit, including Phase 3.3 spec update and Phase 3.4 commit. -->
 
-Sub-agent dispatch protocol applies to all platforms and all sub-agents, including class-2 Codex/Copilot/Gemini/Qoder and `trellis-research`: every dispatch prompt starts with `Active task: <task path from task.py current>` before role-specific instructions.
+Sub-agent dispatch protocol applies to all platforms and all sub-agents, including class-2 Codex/Gemini/Qoder/Copilot/ZCode/Reasonix/Trae and `trellis-research`: every dispatch prompt starts with `Active task: <task path from task.py current>` before role-specific instructions.
 
 [workflow-state:in_progress]
 Tools: `trellis-implement` / `trellis-research` are sub-agent types only (Task/Agent tool, NOT Skill; there is no skill by these names). `trellis-update-spec` is a skill. `trellis-check` exists as both; prefer the Agent form when verifying after code changes.
@@ -272,13 +272,13 @@ Code committed. Run `/trellis:finish-work`; if dirty, return to Phase 3.4 first.
 
 When a user request matches one of these intents inside an active task, route first, then load the detailed phase step if needed.
 
-[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 - Planning or unclear requirements -> `trellis-brainstorm`.
 - `in_progress` implementation/check -> dispatch `trellis-implement` / `trellis-check`.
 - Repeated debugging -> `trellis-break-loop`; spec updates -> `trellis-update-spec`.
 
-[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 [codex-inline, Kilo, Antigravity, Devin]
 
@@ -353,7 +353,7 @@ Return to this step whenever requirements change and revise the relevant artifac
 
 Research can happen at any time during requirement exploration. It isn't limited to local code — you can use any available tool (MCP servers, skills, web search, etc.) to look up external information, including third-party library docs, industry practices, API references, etc.
 
-[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 Spawn the research sub-agent:
 
@@ -361,7 +361,7 @@ Spawn the research sub-agent:
 - **Task description**: Research <specific question>
 - **Key requirement**: Research output MUST be persisted to `{TASK_DIR}/research/`
 
-[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 [codex-inline, Kilo, Antigravity, Devin]
 
@@ -380,7 +380,7 @@ Brainstorm and research can interleave freely — pause to research a technical 
 
 #### 1.3 Configure context `[required · once]`
 
-[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 Curate `implement.jsonl` and `check.jsonl` so the Phase 2 sub-agents get the right spec/research context. These files were seeded on `task create` with a single self-describing `_example` line; your job here is to fill in real entries.
 
@@ -421,9 +421,11 @@ python3 ./.trellis/scripts/task.py add-context "$TASK_DIR" check "<path>" "<reas
 
 Delete the seed `_example` line once real entries exist (optional — it's skipped automatically by consumers).
 
-Skip when: `implement.jsonl` and `check.jsonl` have agent-curated entries (the seed row alone doesn't count).
+Ready gate: both `implement.jsonl` and `check.jsonl` must contain at least one real `{"file": "...", "reason": "..."}` entry before `task.py start`. The seed `_example` row alone is not ready.
 
-[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+Skip this step only when both files already have real curated entries.
+
+[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 [codex-inline, Kilo, Antigravity, Devin]
 
@@ -439,7 +441,7 @@ After artifact review, flip the task status to `in_progress`:
 python3 ./.trellis/scripts/task.py start <task-dir>
 ```
 
-For lightweight tasks, `prd.md` can be enough. For complex tasks, `prd.md`, `design.md`, and `implement.md` must exist and be reviewed before start. On sub-agent-capable platforms, curate jsonl manifests when extra spec or research context is needed; seed-only manifests are tolerated by consumers.
+For lightweight tasks, `prd.md` can be enough. For complex tasks, `prd.md`, `design.md`, and `implement.md` must exist and be reviewed before start. On sub-agent-dispatch platforms, `implement.jsonl` and `check.jsonl` must both have real curated entries before start. Runtime consumers tolerate missing or seed-only manifests for compatibility, but that tolerance is not a planning-ready state.
 
 After this command succeeds, the breadcrumb auto-switches to `[workflow-state:in_progress]`, and the rest of Phase 2 / 3 follows.
 
@@ -456,11 +458,11 @@ If `task.py start` errors with a session-identity message (no context key from h
 | `design.md` exists (complex tasks) | ✅ |
 | `implement.md` exists (complex tasks) | ✅ |
 
-[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
-| `implement.jsonl` / `check.jsonl` curated when extra spec or research context is needed | recommended |
+| `implement.jsonl` and `check.jsonl` each contain at least one real curated entry (seed row does not count) | ✅ |
 
-[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 ---
 
@@ -470,7 +472,7 @@ Goal: turn reviewed planning artifacts into code that passes quality checks.
 
 #### 2.1 Implement `[required · repeatable]`
 
-[Claude Code, Cursor, OpenCode, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code, Cursor, OpenCode, CodeBuddy, Droid, Pi]
 
 Spawn the implement sub-agent:
 
@@ -482,9 +484,9 @@ The platform hook/plugin auto-handles:
 - Reads `implement.jsonl` and injects referenced spec/research files into the agent prompt
 - Injects `prd.md`, `design.md` if present, and `implement.md` if present
 
-[/Claude Code, Cursor, OpenCode, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Claude Code, Cursor, OpenCode, CodeBuddy, Droid, Pi]
 
-[codex-sub-agent]
+[codex-sub-agent, Gemini, Qoder, Copilot, ZCode, Reasonix, Trae]
 
 Spawn the implement sub-agent:
 
@@ -492,11 +494,11 @@ Spawn the implement sub-agent:
 - **Task description**: Implement the reviewed task artifacts, consulting materials under `{TASK_DIR}/research/`; finish by running project lint and type-check
 - **Dispatch prompt guard**: The prompt MUST start with `Active task: <task path>`, then explicitly say the spawned agent is already `trellis-implement` and must implement directly without spawning another `trellis-implement` / `trellis-check`.
 
-The Codex sub-agent definition auto-handles the context load requirement:
+The pull-based sub-agent definition auto-handles the context load requirement:
 - Resolves the active task with `task.py current --source`, then reads `prd.md`, `design.md` if present, and `implement.md` if present
 - Reads `implement.jsonl` and requires the agent to load each referenced spec/research file before coding
 
-[/codex-sub-agent]
+[/codex-sub-agent, Gemini, Qoder, Copilot, ZCode, Reasonix, Trae]
 
 [Kiro]
 
@@ -522,23 +524,9 @@ The platform prelude auto-handles the context load requirement:
 
 [/codex-inline, Kilo, Antigravity, Devin]
 
-### Trellis Plus: Docker dev-command bootstrap
-
-Before implementation or validation, check whether this repository has a dev-command wrapper such as `./hako`.
-
-If no wrapper exists and the task needs install, lint, type-check, test, build, or dev-server commands, apply the `dev-it-in-docker` skill before normal implementation:
-
-- detect the project toolchain and dev-server ports from actual manifest/config files
-- create or update the repo-local `hako` wrapper
-- ensure `.devhome` is gitignored
-- register only the narrow wrapper allow rule in the active agent config, such as `prefix_rule(pattern=["./hako"], decision="allow")` for Codex
-- verify with the cheapest available `./hako <tool> --version` command
-
-Do not broaden allow rules to raw `docker`, `bash`, `sh`, or package-manager commands just to make validation convenient.
-
 #### 2.2 Quality check `[required · repeatable]`
 
-[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 Spawn the check sub-agent:
 
@@ -552,7 +540,7 @@ The check agent's job:
 - Auto-fix issues it finds
 - Run lint and typecheck to verify
 
-[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, ZCode, Reasonix, Trae]
 
 [codex-inline, Kilo, Antigravity, Devin]
 
@@ -600,28 +588,6 @@ Update the docs under `.trellis/spec/` accordingly. Even if the conclusion is "n
 #### 3.4 Commit changes `[required · once]`
 
 **Spec-sync preamble**: before drafting commits, ask: did this task fix a bug or surface non-obvious knowledge that should land in `.trellis/spec/` so future-you (or future-AI) doesn't repeat the mistake? If yes, return to Phase 3.3 first — spec writes belong in the same task's commit batch, not as a forgotten follow-up.
-
-### Trellis Plus: Submit-ready human review gate
-
-Before proposing a commit or marking a task complete, evaluate whether the finished work needs human participation.
-
-1. Compare the implemented diff, `prd.md`, and the validation results.
-2. Decide one of: `human-required`, `human-optional`, or `human-not-needed`.
-3. If `human-required`, stop before commit and ask for targeted feedback.
-4. If `human-optional`, present the review request and say whether it blocks commit.
-5. If `human-not-needed`, state the reason in one sentence in the commit plan.
-
-Require human review for UI/UX changes, ambiguous product behavior, skipped material checks, browser-only validation, credentials/external services, security-sensitive work, migrations, destructive operations, or when automated tests do not cover the user-facing behavior promised in `prd.md`.
-
-The feedback request must name what changed, which automated checks ran, what the user should test manually, what feedback format is useful, and any specific questions that affect commit readiness. Do not ask a generic "please review".
-
-### Trellis Plus: Codex commit summary and attribution
-
-Before creating each Phase 3.4 work commit, decide whether ChatGPT/Codex made a substantial author-level contribution. For commits above that threshold, write a useful task completion summary body and add this trailer:
-
-`Co-authored-by: OpenAI Codex <codex@openai.com>`
-
-The body should summarize the problem/request, root cause or design rationale when relevant, implementation by subsystem, preserved boundaries, and validation results. Show a commit body preview, the trailer, and a short attribution reason in the proposed commit plan before asking for confirmation. Do not add attribution merely because Codex touched a file, and do not invent a long body for small commits. Omit it for small/mechanical follow-ups, user-authored/unrecognized files, and `/finish-work` archive or journal commits. Preserve any existing project-specific Codex/OpenAI trailer convention if recent history already uses one.
 
 The AI drives a batched commit of this task's code changes so `/finish-work` can run cleanly afterwards. Goal: produce work commits FIRST, then bookkeeping (archive + journal) commits land after — never interleaved.
 
