@@ -227,6 +227,7 @@ Tools: `trellis-implement` / `trellis-research` are sub-agent types only (Task/A
 Flow: `trellis-implement` -> `trellis-check` -> `trellis-update-spec` -> commit (Phase 3.4) -> `/trellis:finish-work`.
 Main-session default: dispatch implement/check sub-agents. Sub-agent self-exemption: if already running as `trellis-implement`, do NOT spawn another `trellis-implement` or `trellis-check`; if already running as `trellis-check`, do NOT spawn another `trellis-check` or `trellis-implement`. Dispatch is main session only.
 Dispatch prompt starts with `Active task: <task path from task.py current>`. Read context: jsonl entries -> `prd.md` -> `design.md if present` -> `implement.md if present`.
+Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate and the AI co-author trailer threshold.
 [/workflow-state:in_progress]
 
 <!-- Per-turn breadcrumb: shown while status='in_progress' when
@@ -238,6 +239,7 @@ Dispatch prompt starts with `Active task: <task path from task.py current>`. Rea
 Flow: `trellis-before-dev` -> edit -> `trellis-check` -> validation -> `trellis-update-spec` -> commit (Phase 3.4) -> `/trellis:finish-work`.
 Do not dispatch implement/check sub-agents in inline mode.
 Read context: `prd.md` -> `design.md if present` -> `implement.md if present`, plus relevant spec/research loaded by skills.
+Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate and the AI co-author trailer threshold.
 [/workflow-state:in_progress-inline]
 
 ### Phase 3: Finish
@@ -521,6 +523,7 @@ The platform prelude auto-handles the context load requirement:
 3. Consult materials under `{TASK_DIR}/research/`
 4. Implement the code per reviewed artifacts
 5. Run project lint and type-check
+6. Prefer repo-local wrapper commands such as `./hako`; if no wrapper exists and the task needs install/lint/typecheck/test/build/dev-server commands, apply the `dev-it-in-docker` skill before implementation.
 
 [/codex-inline, Kilo, Antigravity, Devin]
 
@@ -554,6 +557,14 @@ If issues are found → fix → re-check, until green.
 [/codex-inline, Kilo, Antigravity, Devin]
 
 **Final pass (before Phase 3.4 commit)**: the last 2.2 of a task must run full-scope, not just on the latest implement chunk. List all affected packages with `python3 ./.trellis/scripts/get_context.py --mode packages`, then load each package's spec index Quality Check section. This catches cross-layer / multi-package issues a mid-iteration local 2.2 cannot.
+
+**Trellis Plus: Submit-ready human review gate**: after the final pass and before proposing commits, decide whether human review is `human-required`, `human-optional`, or `human-not-needed`.
+
+- `human-required`: stop before commit and ask for targeted feedback when UI/UX/copy/workflow behavior changed, product judgment is still ambiguous, validation needs browser/device/credentials/external services, a material check was skipped, the change touches high-risk areas such as auth/billing/deletion/security/deployment, or tests only cover mechanics but not the promised user-facing behavior.
+- `human-optional`: all relevant checks passed and remaining risk is low, but a user smoke test could add confidence.
+- `human-not-needed`: the change is mechanical, documentation-only, or fully covered by focused tests; include the reason in the commit plan.
+
+When asking for review, include what changed, automated checks and results, exact manual paths to test, the useful feedback format, and only the open questions that affect commit readiness.
 
 #### 2.3 Rollback `[on demand]`
 
@@ -591,6 +602,12 @@ Update the docs under `.trellis/spec/` accordingly. Even if the conclusion is "n
 
 The AI drives a batched commit of this task's code changes so `/finish-work` can run cleanly afterwards. Goal: produce work commits FIRST, then bookkeeping (archive + journal) commits land after — never interleaved.
 
+**AI co-author trailer**: before creating each Phase 3.4 work commit, decide whether ChatGPT/Codex made a substantial author-level contribution. For commits above that threshold, write a useful task completion summary body and add this trailer:
+
+`Co-authored-by: OpenAI Codex <codex@openai.com>`
+
+Use the trailer for substantial implementation work, cross-layer changes, non-obvious design/debugging, significant tests, or commits whose body explains rationale and validation. Do not add it merely because Codex touched a file, and omit it for small mechanical edits, user-authored or unrecognized files, and Trellis archive/journal commits. Recent Rakuseru history uses English commit bodies with validation bullets for substantial AI-assisted work; follow that style unless the user requests otherwise.
+
 **Step-by-step**:
 
 1. **Inspect dirty state**:
@@ -609,7 +626,7 @@ The AI drives a batched commit of this task's code changes so `/finish-work` can
    - **AI-edited this session** — files you wrote/edited via Edit/Write/Bash tool calls in this session. You know what changed and why.
    - **Unrecognized** — dirty files you did NOT touch this session (could be the user's manual edits, leftover WIP from a previous session, or unrelated work). Do NOT silently include these.
 
-4. **Draft a commit plan**. Group AI-edited files into logical commits (1 commit per coherent change unit, not 1 commit per file). Each entry: `<commit message>` + file list. List unrecognized files separately at the bottom.
+4. **Draft a commit plan**. Group AI-edited files into logical commits (1 commit per coherent change unit, not 1 commit per file). Each entry: `<commit message>` + file list. For attributed commits, also show the body preview, trailer, and one short attribution reason. List unrecognized files separately at the bottom.
 
 5. **Present the plan once, ask for one-shot confirmation**. Format:
    ```

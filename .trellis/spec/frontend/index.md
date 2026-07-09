@@ -15,6 +15,30 @@ Run development commands through the repo-local Docker wrapper `./hako`:
 
 For user-facing UI work, also run a browser smoke test when possible. If Docker, dependency installation, browser validation, or another material check cannot run, record the skipped check and the reason before finishing.
 
+### Trellis Plus Submit-Ready Profile
+
+Before proposing a work commit, compare the diff, task acceptance criteria, and validation evidence:
+
+- Required automated checks: `./hako npm run lint`, `./hako npm run typecheck`, `./hako npm test`, and `./hako npm run build`.
+- Dependency changes: also run `./hako npm audit --omit=dev` when runtime dependencies are added or upgraded.
+- User-facing UI, workflow, layout, accessibility, export/import, or persistence changes: run a browser smoke test when possible and record the tested path.
+- Manual review is required when a material check cannot run, browser/device behavior cannot be verified by the agent, or product judgment remains unresolved.
+- Manual review is optional when all required checks pass and the remaining risk is a small visible behavior that the user can quickly smoke test.
+- Manual review is not needed for mechanical or documentation-only changes covered by focused review.
+
+When human feedback is required or optional, ask for concrete signals: pass/fail for named paths, screenshots or recordings for UI failures, browser console output, logs, and expected-vs-actual notes.
+
+### Docker Dev Wrapper
+
+Rakuseru already has a repo-local Docker-backed command wrapper:
+
+- one-shot commands: `./hako ...`
+- dev server helper: `./dev.sh` / `./dev.sh down`
+- cache/home directory: `.devhome` (gitignored)
+- Codex allow rule: `.codex/rules/default.rules` allows only the `./hako` prefix.
+
+Do not broaden allow rules to raw `docker`, `bash`, `sh`, or package-manager commands when `./hako` can run the check. If a future task needs to recreate or substantially change the wrapper, apply the `dev-it-in-docker` skill first.
+
 ## Guidelines Index
 
 | Guide | Use |

@@ -4,3 +4,30 @@ dist
 coverage
 *.tsbuildinfo
 npm-debug.log*
+
+# Project-owned Trellis agent instructions.
+!.agents/
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/trellis-before-dev/
+.agents/skills/trellis-before-dev/*
+!.agents/skills/trellis-before-dev/SKILL.md
+!.agents/skills/trellis-check/
+.agents/skills/trellis-check/*
+!.agents/skills/trellis-check/SKILL.md
+
+# Project-owned Codex Trellis integration.
+!.codex/
+.codex/*
+!.codex/config.toml
+!.codex/hooks.json
+!.codex/rules/
+.codex/rules/*
+!.codex/rules/default.rules
+!.codex/agents/
+.codex/agents/*
+!.codex/agents/trellis-*.toml
+!.codex/hooks/
+.codex/hooks/*
+!.codex/hooks/inject-workflow-state.py
+!.codex/hooks/session-start.py
