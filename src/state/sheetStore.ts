@@ -3,8 +3,17 @@ import { create } from 'zustand'
 import { addColumn, createColumn, moveColumn, moveColumnToIndex, removeColumn, updateColumn } from '../model/column'
 import { createSheetDocument } from '../model/document'
 import type { CellValue, ColumnDef, ColumnType, SheetDocument } from '../model/document'
+import {
+  createDefaultLibrarySnapshot,
+  createDocumentLibrarySnapshot,
+  createLibraryDocumentRecord,
+  duplicateLibraryDocumentRecord,
+  type LibraryDocumentRecord,
+  type LibraryDocumentSummary,
+  updateLibraryDocumentRecord,
+} from '../model/library'
 import { addRow, moveRow, moveRowToIndex, removeRow, updateCell } from '../model/row'
-import { loadActiveDocument, saveActiveDocument } from '../storage/indexedDb'
+import { loadDocumentLibrary, saveActiveLibraryDocument, saveDocumentLibrary } from '../storage/indexedDb'
 
 type SheetStatus = 'idle' | 'loading' | 'saving' | 'saved' | 'error'
 
@@ -25,6 +34,9 @@ export type RightPanelMode = {
 }
 
 type SheetStore = {
+  documents: LibraryDocumentSummary[]
+  activeDocumentId: string
+  libraryRecords: LibraryDocumentRecord[]
   document: SheetDocument
   selectedColumnId?: string
   activeRowId?: string
@@ -36,6 +48,12 @@ type SheetStore = {
   load: () => Promise<void>
   save: () => Promise<void>
   setDocument: (document: SheetDocument, message?: string) => void
+  importDocumentAsNew: (document: SheetDocument, message?: string) => void
+  replaceActiveDocument: (document: SheetDocument, message?: string) => void
+  createDocument: () => void
+  duplicateDocument: () => void
+  switchDocument: (documentId: string) => Promise<void>
+  deleteDocument: (documentId: string) => void
   setError: (message: string) => void
   setTitle: (title: string) => void
   addColumn: (type?: ColumnType) => void
@@ -55,8 +73,13 @@ type SheetStore = {
   toggleSidePanel: () => void
 }
 
+const initialLibrary = createDefaultLibrarySnapshot()
+
 export const useSheetStore = create<SheetStore>((set, get) => ({
-  document: createSheetDocument(),
+  documents: initialLibrary.summaries,
+  activeDocumentId: initialLibrary.activeDocumentId,
+  libraryRecords: initialLibrary.records,
+  document: initialLibrary.records[0].document,
   selectedColumnId: undefined,
   activeRowId: undefined,
   activeCell: undefined,
@@ -65,39 +88,147 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
   status: 'idle',
   message: '',
   async load() {
-    set({ status: 'loading', message: 'Loading saved sheet' })
+    set({ status: 'loading', message: 'Loading saved sheets' })
     try {
-      const loaded = await loadActiveDocument()
+      const snapshot = await loadDocumentLibrary()
+      const activeRecord = readActiveRecord(snapshot.records, snapshot.activeDocumentId)
       set({
-        document: loaded ?? createSheetDocument(),
-        selectedColumnId: (loaded ?? get().document).columns[0]?.id,
-        activeRowId: (loaded ?? get().document).rows[0]?.id,
+        documents: snapshot.summaries,
+        activeDocumentId: activeRecord.id,
+        libraryRecords: snapshot.records,
+        document: activeRecord.document,
+        selectedColumnId: activeRecord.document.columns[0]?.id,
+        activeRowId: activeRecord.document.rows[0]?.id,
         activeCell: undefined,
         rightPanelMode: { kind: 'empty' },
         status: 'saved',
-        message: loaded ? 'Loaded from this browser' : 'Started sample sheet',
+        message: snapshot.records.length > 1 ? `Loaded ${snapshot.records.length} sheets` : 'Loaded sheet library',
       })
     } catch (error) {
-      set({ status: 'error', message: error instanceof Error ? error.message : 'Failed to load sheet' })
+      set({ status: 'error', message: error instanceof Error ? error.message : 'Failed to load sheets' })
     }
   },
   async save() {
     set({ status: 'saving', message: 'Saving' })
     try {
-      await saveActiveDocument(get().document)
-      set({ status: 'saved', message: 'Saved locally' })
+      const snapshot = createCurrentSnapshot(get())
+      await saveActiveLibraryDocument(snapshot)
+      set({ documents: snapshot.summaries, libraryRecords: snapshot.records, status: 'saved', message: 'Saved locally' })
     } catch (error) {
       set({ status: 'error', message: error instanceof Error ? error.message : 'Failed to save sheet' })
     }
   },
   setDocument(document, message = 'Document replaced') {
-    set({ document, selectedColumnId: document.columns[0]?.id, activeRowId: document.rows[0]?.id, activeCell: undefined, rightPanelMode: { kind: 'empty' }, status: 'idle', message })
+    get().replaceActiveDocument(document, message)
+  },
+  importDocumentAsNew(document, message = 'Imported as new sheet') {
+    const currentSnapshot = createCurrentSnapshot(get())
+    const record = createLibraryDocumentRecord(document)
+    const snapshot = createDocumentLibrarySnapshot([...currentSnapshot.records, record], record.id)
+    set({
+      documents: snapshot.summaries,
+      activeDocumentId: record.id,
+      libraryRecords: snapshot.records,
+      ...createEditorContext(record.document),
+      status: 'idle',
+      message,
+    })
+    persistLibrarySnapshot(snapshot, set)
+  },
+  replaceActiveDocument(document, message = 'Document replaced') {
+    set((state) => {
+      const snapshot = createCurrentSnapshot({ ...state, document })
+      const activeRecord = readActiveRecord(snapshot.records, snapshot.activeDocumentId)
+
+      return {
+        documents: snapshot.summaries,
+        libraryRecords: snapshot.records,
+        ...createEditorContext(activeRecord.document),
+        status: 'idle',
+        message,
+      }
+    })
+  },
+  createDocument() {
+    const currentSnapshot = createCurrentSnapshot(get())
+    const record = createLibraryDocumentRecord(createSheetDocument('新的采购清单'))
+    const snapshot = createDocumentLibrarySnapshot([...currentSnapshot.records, record], record.id)
+    set({
+      documents: snapshot.summaries,
+      activeDocumentId: record.id,
+      libraryRecords: snapshot.records,
+      ...createEditorContext(record.document),
+      status: 'idle',
+      message: 'Sheet created',
+    })
+    persistLibrarySnapshot(snapshot, set)
+  },
+  duplicateDocument() {
+    const currentSnapshot = createCurrentSnapshot(get())
+    const activeRecord = readActiveRecord(currentSnapshot.records, currentSnapshot.activeDocumentId)
+    const duplicate = duplicateLibraryDocumentRecord(activeRecord)
+    const snapshot = createDocumentLibrarySnapshot([...currentSnapshot.records, duplicate], duplicate.id)
+    set({
+      documents: snapshot.summaries,
+      activeDocumentId: duplicate.id,
+      libraryRecords: snapshot.records,
+      ...createEditorContext(duplicate.document),
+      status: 'idle',
+      message: 'Sheet duplicated',
+    })
+    persistLibrarySnapshot(snapshot, set)
+  },
+  async switchDocument(documentId) {
+    const currentSnapshot = createCurrentSnapshot(get())
+    const nextRecord = currentSnapshot.records.find((record) => record.id === documentId)
+
+    if (!nextRecord || documentId === currentSnapshot.activeDocumentId) {
+      return
+    }
+
+    try {
+      await saveActiveLibraryDocument(currentSnapshot)
+      set({
+        documents: currentSnapshot.summaries,
+        activeDocumentId: nextRecord.id,
+        libraryRecords: currentSnapshot.records,
+        ...createEditorContext(nextRecord.document),
+        status: 'saved',
+        message: `Opened ${nextRecord.title}`,
+      })
+      await saveActiveLibraryDocument(createDocumentLibrarySnapshot(currentSnapshot.records, nextRecord.id))
+    } catch (error) {
+      set({ status: 'error', message: error instanceof Error ? error.message : 'Failed to switch sheet' })
+    }
+  },
+  deleteDocument(documentId) {
+    const currentSnapshot = createCurrentSnapshot(get())
+    const remainingRecords = currentSnapshot.records.filter((record) => record.id !== documentId)
+    const fallbackRecord = remainingRecords[0] ?? createLibraryDocumentRecord(createSheetDocument())
+    const nextActiveId = documentId === currentSnapshot.activeDocumentId ? fallbackRecord.id : currentSnapshot.activeDocumentId
+    const snapshot = createDocumentLibrarySnapshot(remainingRecords.length > 0 ? remainingRecords : [fallbackRecord], nextActiveId)
+    const activeRecord = readActiveRecord(snapshot.records, snapshot.activeDocumentId)
+
+    set({
+      documents: snapshot.summaries,
+      activeDocumentId: activeRecord.id,
+      libraryRecords: snapshot.records,
+      ...createEditorContext(activeRecord.document),
+      status: 'idle',
+      message: 'Sheet deleted',
+    })
+    persistLibrarySnapshot(snapshot, set)
   },
   setError(message) {
     set({ status: 'error', message })
   },
   setTitle(title) {
-    set((state) => ({ document: { ...state.document, title }, status: 'idle', message: 'Title changed' }))
+    set((state) => {
+      const document = { ...state.document, title }
+      const snapshot = createCurrentSnapshot({ ...state, document })
+
+      return { document, documents: snapshot.summaries, libraryRecords: snapshot.records, status: 'idle', message: 'Title changed' }
+    })
   },
   addColumn(type = 'text') {
     const column = createColumn('新列', type)
@@ -211,3 +342,30 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
     set((state) => ({ sidePanelCollapsed: !state.sidePanelCollapsed }))
   },
 }))
+
+function createCurrentSnapshot(state: Pick<SheetStore, 'activeDocumentId' | 'document' | 'libraryRecords'>) {
+  return createDocumentLibrarySnapshot(
+    state.libraryRecords.map((record) => (record.id === state.activeDocumentId ? updateLibraryDocumentRecord(record, state.document) : record)),
+    state.activeDocumentId,
+  )
+}
+
+function readActiveRecord(records: LibraryDocumentRecord[], activeDocumentId: string): LibraryDocumentRecord {
+  return records.find((record) => record.id === activeDocumentId) ?? records[0]
+}
+
+function createEditorContext(document: SheetDocument) {
+  return {
+    document,
+    selectedColumnId: document.columns[0]?.id,
+    activeRowId: document.rows[0]?.id,
+    activeCell: undefined,
+    rightPanelMode: { kind: 'empty' } as RightPanelMode,
+  }
+}
+
+function persistLibrarySnapshot(snapshot: ReturnType<typeof createDocumentLibrarySnapshot>, set: (partial: Partial<SheetStore>) => void) {
+  void saveDocumentLibrary(snapshot).catch((error: unknown) => {
+    set({ status: 'error', message: error instanceof Error ? error.message : 'Failed to save sheet library' })
+  })
+}

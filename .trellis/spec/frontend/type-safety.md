@@ -1,6 +1,6 @@
 # Type Safety
 
-TypeScript strict mode is required. `SheetDocument`, `ColumnDef`, `RowData`, and `CellValue` in `src/model/document.ts` are the canonical contracts for editor state, storage, imports, and export adapters.
+TypeScript strict mode is required. `SheetDocument`, `ColumnDef`, `RowData`, and `CellValue` in `src/model/document.ts` are the canonical contracts for sheet contents, storage payloads, imports, and export adapters. Document-library metadata wraps `SheetDocument` in `src/model/library.ts`; it must not replace or fork the canonical sheet model.
 
 ## Compiler Contract
 
@@ -11,6 +11,8 @@ TypeScript strict mode is required. `SheetDocument`, `ColumnDef`, `RowData`, and
 Shared document types live in `src/model/document.ts`. Boundary modules import these types instead of redefining partial shapes.
 
 Column type values are centralized in `COLUMN_TYPES` from `src/model/column.ts`. Use this list for UI selectors and validation instead of duplicating string arrays.
+
+Document-library wrapper types live in `src/model/library.ts`: `LibraryDocumentRecord`, `LibraryDocumentSummary`, and `DocumentLibrarySnapshot`. Keep record ids, timestamps, and title metadata in this wrapper. Keep editable sheet contents in the nested `SheetDocument`.
 
 ## Validation
 
@@ -117,6 +119,8 @@ if (result.ok) {
 validateSheetDocument(input: unknown): ValidationResult<SheetDocument>
 importJson(content: string): SheetDocument
 setDocument(document: SheetDocument, message?: string): void
+importDocumentAsNew(document: SheetDocument, message?: string): void
+replaceActiveDocument(document: SheetDocument, message?: string): void
 setError(message: string): void
 ```
 
@@ -124,7 +128,7 @@ setError(message: string): void
 
 - `importJson` parses raw file text and either returns a validated `SheetDocument` or throws `Error`.
 - `validateSheetDocument` accepts `unknown`, validates `version`, `title`, `columns`, `rows`, and row `cells`, then normalizes cells through `coerceCellValue`.
-- Valid imports replace the active document and select the first column through `setDocument`.
+- Valid imports create a new library document by default through `importDocumentAsNew`. Explicit current-sheet replacement, when exposed, should use `replaceActiveDocument`.
 - Failed imports leave the current document unchanged and surface the message through `setError`.
 
 ### 4. Validation & Error Matrix
@@ -141,7 +145,7 @@ setError(message: string): void
 
 ### 5. Good/Base/Bad Cases
 
-- Good: importing a file produced by `exportJson(document)` replaces the active document losslessly.
+- Good: importing a file produced by `exportJson(document)` creates a new active library sheet losslessly unless the user explicitly chose replacement.
 - Base: importing malformed JSON keeps the current document and shows a parse error in the status line.
 - Bad: casting parsed JSON as `SheetDocument` or letting an async import handler fail without `try/catch`.
 
@@ -157,14 +161,14 @@ setError(message: string): void
 Wrong:
 
 ```ts
-setDocument(importJson(content), `Imported ${file.name}`)
+importDocumentAsNew(importJson(content), `Imported ${file.name}`)
 ```
 
 Correct:
 
 ```ts
 try {
-  setDocument(importJson(content), `Imported ${file.name}`)
+  importDocumentAsNew(importJson(content), `Imported ${file.name}`)
 } catch (error) {
   setError(error instanceof Error ? error.message : `Could not import ${file.name}`)
 }
