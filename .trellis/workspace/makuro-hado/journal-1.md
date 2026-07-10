@@ -204,3 +204,36 @@ Implemented export preview and active-sheet validation, then applied Trellis Plu
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Document library workspace
+
+**Date**: 2026-07-10
+**Task**: Document library workspace
+**Branch**: `makuro-haado`
+
+### Summary
+
+Added a local multi-sheet document library around SheetDocument, migrated IndexedDB persistence from the legacy active sheet key, exposed toolbar document controls, updated frontend specs, and verified lint/typecheck/tests/build plus headless Chrome workflow smoke.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `090ed90` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
