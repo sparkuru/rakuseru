@@ -237,3 +237,36 @@ Added a local multi-sheet document library around SheetDocument, migrated Indexe
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Refine toolbar and column properties
+
+**Date**: 2026-07-15
+**Task**: Refine toolbar and column properties
+**Branch**: `makuro-haado`
+
+### Summary
+
+Refined narrow-width toolbar grouping and column property sections; added backward-compatible column alignment through validation, rendering, and XLSX export; verified lint, typecheck, tests, build, and headless browser smoke.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `75157f7` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
