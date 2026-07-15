@@ -23,6 +23,8 @@ The app uses plain global CSS in `src/app/styles.css`. Keep layout dimensions st
 
 Rakuseru opens directly into the working editor. Do not add landing-page or marketing hero UI for product work.
 
+Toolbar actions should stay visually attached to the title editor when horizontal space tightens. Preserve the command group order document library -> structure -> import -> export, and wrap the action row below the title field instead of letting action groups form detached right-edge vertical stacks.
+
 ## Accessibility
 
 - Icon-only buttons need `aria-label` and `title`; see row deletion in `src/components/SheetView.tsx` and image clearing in `src/components/CellEditor.tsx`.
@@ -68,6 +70,8 @@ Column schema controls should communicate the kind of value being edited:
 - Freeform text or numeric properties use inputs.
 
 Keep switch rows centered within their property blocks so schema panels read as editable property groups, not mixed form fragments.
+
+Use grouped sections for related column metadata. Width controls own the width unit input, width stepper, and `lockedWidth`; general 属性 controls own `wrap`, `required`, and alignment. Width is shown as logical units where `1` maps to the standard non-image column width (`160px`). If a dragged pixel width is fractional in unit terms, stepper actions should snap to the nearest integer unit before continuing with integer steps.
 
 ## Table Selection And Resize
 

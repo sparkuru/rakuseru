@@ -3,6 +3,7 @@ import { createColumn } from './column'
 import { createEmptyCellValue } from './cell'
 
 export type ColumnType = 'text' | 'number' | 'money' | 'singleSelect' | 'multiSelect' | 'image' | 'link'
+export type ColumnAlign = 'left' | 'center' | 'right'
 
 export type SheetDocument = {
   version: 1
@@ -18,6 +19,7 @@ export type ColumnDef = {
   width?: number
   lockedWidth?: boolean
   wrap?: boolean
+  align?: ColumnAlign
   options?: string[]
   required?: boolean
 }

@@ -1,6 +1,7 @@
 import { Image as ImageIcon, Link } from 'lucide-react'
 
 import { isImageValue, stringifyCellValue } from '../model/cell'
+import { getColumnAlign } from '../model/column'
 import type { CellValue, ColumnDef, ImageFit, RowData } from '../model/document'
 import { useSheetStore } from '../state/sheetStore'
 
@@ -20,6 +21,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
   const updateCell = useSheetStore((state) => state.updateCell)
   const selectColumn = useSheetStore((state) => state.selectColumn)
   const value = row.cells[column.id] ?? ''
+  const alignClassName = `align-${getColumnAlign(column)}`
 
   function commit(nextValue: CellValue) {
     updateCell(row.id, column.id, nextValue)
@@ -28,7 +30,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
   switch (column.type) {
     case 'number':
     case 'money':
-      return <span className="cell-display numeric-display">{typeof value === 'number' ? value : stringifyCellValue(value)}</span>
+      return <span className={`cell-display numeric-display ${alignClassName}`}>{typeof value === 'number' ? value : stringifyCellValue(value)}</span>
     case 'singleSelect':
       if (!(column.options ?? []).length) {
         return (
@@ -46,7 +48,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
       }
 
       return (
-        <select className="cell-input" value={typeof value === 'string' ? value : ''} onChange={(event) => commit(event.target.value)}>
+        <select className={`cell-input ${alignClassName}`} value={typeof value === 'string' ? value : ''} onChange={(event) => commit(event.target.value)}>
           <option value="">-</option>
           {(column.options ?? []).map((option) => (
             <option key={option} value={option}>
@@ -73,7 +75,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
 
       const selected = Array.isArray(value) ? value : []
       return (
-        <div className="multi-select-cell" role="group" aria-label={`${column.title} options`}>
+        <div className={`multi-select-cell ${alignClassName}`} role="group" aria-label={`${column.title} options`}>
           {(column.options ?? []).map((option) => (
             <button
               key={option}
@@ -92,7 +94,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
     }
     case 'image':
       return (
-        <div className="image-cell">
+        <div className={`image-cell ${alignClassName}`}>
           {isImageValue(value) ? (
             <figure className={`image-preview ${IMAGE_FIT_CLASS[value.fit ?? 'cover']}`}>
               <img src={value.dataUrl} alt={value.name} />
@@ -109,7 +111,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
     case 'link': {
       const link = typeof value === 'string' ? value : stringifyCellValue(value)
       return (
-        <span className={link ? 'cell-display link-display' : 'cell-display muted'}>
+        <span className={link ? `cell-display link-display ${alignClassName}` : `cell-display muted ${alignClassName}`}>
           <Link size={14} aria-hidden="true" />
           <span>{link || '空链接'}</span>
         </span>
@@ -117,7 +119,7 @@ export function CellEditor({ row, column }: CellEditorProps) {
     }
     case 'text': {
       const text = typeof value === 'string' ? value : stringifyCellValue(value)
-      return <span className={text ? 'cell-display text-display' : 'cell-display muted'}>{text || '空白'}</span>
+      return <span className={text ? `cell-display text-display ${alignClassName}` : `cell-display muted ${alignClassName}`}>{text || '空白'}</span>
     }
   }
 }

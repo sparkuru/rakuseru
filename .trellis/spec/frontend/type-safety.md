@@ -174,6 +174,73 @@ try {
 }
 ```
 
+## Column Presentation Metadata
+
+### 1. Scope / Trigger
+
+- Trigger: column presentation settings are stored in `ColumnDef`, validated on JSON import, rendered in cells, and consumed by export adapters.
+- Scope: `src/model/document.ts`, `src/model/column.ts`, `src/model/validation.ts`, cell rendering, column schema UI, and format adapters that can express the setting.
+
+### 2. Signatures
+
+```ts
+type ColumnAlign = 'left' | 'center' | 'right'
+
+type ColumnDef = {
+  width?: number
+  lockedWidth?: boolean
+  wrap?: boolean
+  align?: ColumnAlign
+  required?: boolean
+}
+
+const COLUMN_ALIGNMENTS: ColumnAlign[]
+getDefaultColumnAlign(column: ColumnDef): ColumnAlign
+getColumnAlign(column: ColumnDef): ColumnAlign
+```
+
+### 3. Contracts
+
+- `ColumnDef.align` is optional so existing version-1 documents remain valid.
+- Missing alignment must be read through `getColumnAlign(column)`, not by directly checking `column.align`.
+- Default alignment is `right` for `number` and `money`; all other current column types default to `left`.
+- JSON validation accepts only `left`, `center`, and `right`; invalid alignment metadata is ignored instead of rejecting an otherwise valid existing document.
+- `normalizeColumnForType` must preserve presentation metadata such as `width`, `lockedWidth`, `wrap`, `align`, and `required` when changing a non-select column's type.
+- XLSX export should map `getColumnAlign(column)` to worksheet cell horizontal alignment and respect `wrap` when possible. Text formats such as CSV and Markdown should stay data-only unless their format gains a presentation layer.
+
+### 4. Validation & Error Matrix
+
+- `align` missing -> valid; use `getDefaultColumnAlign(column)`.
+- `align` is `left`, `center`, or `right` -> valid; preserve it.
+- `align` is another string or non-string value -> valid import, but normalized column omits `align`.
+- Presentation metadata invalid or absent must not change cell coercion semantics.
+
+### 5. Good/Base/Bad Cases
+
+- Good: the cell renderer and XLSX adapter call `getColumnAlign(column)` so numeric defaults and user-selected overrides stay consistent.
+- Base: importing a document exported before alignment existed keeps loading and displays default alignment.
+- Bad: reading `column.align ?? 'left'` in a renderer, which silently breaks number and money defaults.
+
+### 6. Tests Required
+
+- Unit tests for `validateSheetDocument` accepting valid `align` values.
+- Unit tests for invalid optional alignment being ignored without rejecting the document.
+- Renderer/export tests or browser smoke when changing how `getColumnAlign` affects visible table cells or XLSX output.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+const horizontal = column.align ?? 'left'
+```
+
+Correct:
+
+```ts
+const horizontal = getColumnAlign(column)
+```
+
 ## Type Guards And Coercion
 
 Use type guards for untrusted values, such as `isImageValue` in `src/model/cell.ts`. Keep coercion in `src/model/cell.ts` so UI edits, imports, and storage reads share behavior.

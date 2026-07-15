@@ -1,9 +1,12 @@
-import { ChevronsRight, Plus, Trash2, X } from 'lucide-react'
+import { ChevronsRight, Minus, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { COLUMN_TYPES, COLUMN_TYPE_LABELS } from '../model/column'
-import type { ColumnType } from '../model/document'
+import { COLUMN_ALIGN_LABELS, COLUMN_ALIGNMENTS, COLUMN_TYPES, COLUMN_TYPE_LABELS, getColumnAlign } from '../model/column'
+import type { ColumnAlign, ColumnType } from '../model/document'
 import { useSheetStore } from '../state/sheetStore'
+
+const WIDTH_UNIT_PIXELS = 160
+const MIN_WIDTH_UNITS = 1
 
 export function ColumnSchemaPanel() {
   const [newOption, setNewOption] = useState('')
@@ -36,6 +39,23 @@ export function ColumnSchemaPanel() {
 
     updateOptions([...(selectedColumn.options ?? []), option])
     setNewOption('')
+  }
+
+  const widthUnits = toWidthUnits(selectedColumn.width)
+
+  function updateWidthUnits(units: number) {
+    if (!Number.isFinite(units)) {
+      return
+    }
+
+    updateColumn(selectedColumn.id, { width: Math.max(MIN_WIDTH_UNITS, units) * WIDTH_UNIT_PIXELS })
+  }
+
+  function stepWidthUnits(direction: -1 | 1) {
+    const nearest = Math.max(MIN_WIDTH_UNITS, Math.round(widthUnits))
+    const nextUnits = Number.isInteger(widthUnits) ? nearest + direction : nearest
+
+    updateWidthUnits(Math.max(MIN_WIDTH_UNITS, nextUnits))
   }
 
   return (
@@ -113,30 +133,63 @@ export function ColumnSchemaPanel() {
         </section>
       )}
 
-      <section className="panel-section" aria-label="Column layout">
-        <div className="two-column-fields">
-          <label className="field">
+      <section className="panel-section property-section" aria-label="Column width">
+        <div className="property-section-heading">
+          <span>宽度</span>
+        </div>
+        <div className="width-control-row">
+          <label className="field width-unit-field">
             <span>宽度</span>
-            <input type="number" value={selectedColumn.width ?? 160} onChange={(event) => updateColumn(selectedColumn.id, { width: Number(event.target.value) })} />
+            <input
+              type="number"
+              min={MIN_WIDTH_UNITS}
+              step="0.01"
+              value={formatWidthUnits(widthUnits)}
+              onChange={(event) => updateWidthUnits(Number(event.target.value))}
+              aria-label="宽度单位"
+            />
           </label>
-          <label className="toggle-field">
+          <div className="unit-stepper" aria-label="宽度微调">
+            <button type="button" className="icon-button" onClick={() => stepWidthUnits(1)} title="增加宽度单位" aria-label="增加宽度单位">
+              <Plus size={16} />
+            </button>
+            <button type="button" className="icon-button" onClick={() => stepWidthUnits(-1)} title="减少宽度单位" aria-label="减少宽度单位">
+              <Minus size={16} />
+            </button>
+          </div>
+          <label className="property-toggle">
             <input type="checkbox" checked={Boolean(selectedColumn.lockedWidth)} onChange={(event) => updateColumn(selectedColumn.id, { lockedWidth: event.target.checked })} />
             <span className="toggle-switch" aria-hidden="true" />
             <span>锁定宽度</span>
           </label>
         </div>
-        <label className="toggle-field">
-          <input type="checkbox" checked={Boolean(selectedColumn.wrap)} onChange={(event) => updateColumn(selectedColumn.id, { wrap: event.target.checked })} />
-          <span className="toggle-switch" aria-hidden="true" />
-          <span>自动换行</span>
-        </label>
       </section>
 
-      <section className="panel-section" aria-label="Column behavior">
-        <label className="toggle-field">
-          <input type="checkbox" checked={Boolean(selectedColumn.required)} onChange={(event) => updateColumn(selectedColumn.id, { required: event.target.checked })} />
-          <span className="toggle-switch" aria-hidden="true" />
-          <span>必填</span>
+      <section className="panel-section property-section" aria-label="Column properties">
+        <div className="property-section-heading">
+          <span>属性</span>
+        </div>
+        <div className="property-grid">
+          <label className="property-toggle">
+            <input type="checkbox" checked={Boolean(selectedColumn.wrap)} onChange={(event) => updateColumn(selectedColumn.id, { wrap: event.target.checked })} />
+            <span className="toggle-switch" aria-hidden="true" />
+            <span>自动换行</span>
+          </label>
+          <label className="property-toggle">
+            <input type="checkbox" checked={Boolean(selectedColumn.required)} onChange={(event) => updateColumn(selectedColumn.id, { required: event.target.checked })} />
+            <span className="toggle-switch" aria-hidden="true" />
+            <span>必填</span>
+          </label>
+        </div>
+        <label className="field">
+          <span>对齐</span>
+          <select value={getColumnAlign(selectedColumn)} onChange={(event) => updateColumn(selectedColumn.id, { align: event.target.value as ColumnAlign })}>
+            {COLUMN_ALIGNMENTS.map((align) => (
+              <option key={align} value={align}>
+                {COLUMN_ALIGN_LABELS[align]}
+              </option>
+            ))}
+          </select>
         </label>
       </section>
 
@@ -167,4 +220,12 @@ export function ColumnSchemaPanel() {
       </section>
     </aside>
   )
+}
+
+function toWidthUnits(width: number | undefined): number {
+  return Math.max(MIN_WIDTH_UNITS, (width ?? WIDTH_UNIT_PIXELS) / WIDTH_UNIT_PIXELS)
+}
+
+function formatWidthUnits(units: number): string {
+  return Number.isInteger(units) ? String(units) : String(Number(units.toFixed(2)))
 }

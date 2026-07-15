@@ -1,6 +1,6 @@
-import { COLUMN_TYPES } from './column'
+import { COLUMN_ALIGNMENTS, COLUMN_TYPES } from './column'
 import { coerceCellValue, createEmptyCellValue, isImageValue } from './cell'
-import type { CellValue, ColumnDef, RowData, SheetDocument } from './document'
+import type { CellValue, ColumnAlign, ColumnDef, RowData, SheetDocument } from './document'
 
 export type ValidationResult<T> = {
   ok: true
@@ -83,6 +83,7 @@ function normalizeColumn(input: unknown, index: number, errors: string[]): Colum
     width: readOptionalNumber(input.width),
     lockedWidth: readOptionalBoolean(input.lockedWidth),
     wrap: readOptionalBoolean(input.wrap),
+    align: readOptionalAlignment(input.align),
     options: readOptionalStringArray(input.options),
     required: readOptionalBoolean(input.required),
   }
@@ -146,6 +147,10 @@ function readOptionalNumber(input: unknown): number | undefined {
 
 function readOptionalBoolean(input: unknown): boolean | undefined {
   return typeof input === 'boolean' ? input : undefined
+}
+
+function readOptionalAlignment(input: unknown): ColumnAlign | undefined {
+  return typeof input === 'string' && COLUMN_ALIGNMENTS.includes(input as ColumnAlign) ? input as ColumnAlign : undefined
 }
 
 function readOptionalStringArray(input: unknown): string[] | undefined {

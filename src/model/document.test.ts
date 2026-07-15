@@ -129,6 +129,32 @@ describe('SheetDocument model', () => {
     }
   })
 
+  it('accepts optional column alignment metadata', () => {
+    const document = createSheetDocument()
+    const textColumn = document.columns.find((column) => column.type === 'text')!
+    const aligned = updateColumn(document, textColumn.id, { align: 'center' })
+    const result = validateSheetDocument(aligned)
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.columns.find((column) => column.id === textColumn.id)?.align).toBe('center')
+    }
+  })
+
+  it('ignores invalid optional column alignment metadata', () => {
+    const document = createSheetDocument()
+    const input = {
+      ...document,
+      columns: document.columns.map((column, index) => index === 0 ? { ...column, align: 'diagonal' } : column),
+    }
+    const result = validateSheetDocument(input)
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.columns[0].align).toBeUndefined()
+    }
+  })
+
   it('reports required content issues across column types', () => {
     const document = createSheetDocument()
     const textColumn = document.columns.find((column) => column.type === 'text')!

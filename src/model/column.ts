@@ -1,8 +1,9 @@
 import { createId } from '../utils/ids'
 import { coerceCellValue, createEmptyCellValue } from './cell'
-import type { ColumnDef, ColumnType, RowData, SheetDocument } from './document'
+import type { ColumnAlign, ColumnDef, ColumnType, RowData, SheetDocument } from './document'
 
 export const COLUMN_TYPES: ColumnType[] = ['text', 'number', 'money', 'singleSelect', 'multiSelect', 'image', 'link']
+export const COLUMN_ALIGNMENTS: ColumnAlign[] = ['left', 'center', 'right']
 export const DEFAULT_SELECT_OPTIONS = ['待确认', '已采购', '不采购']
 export const COLUMN_TYPE_LABELS: Record<ColumnType, string> = {
   text: '文本',
@@ -12,6 +13,19 @@ export const COLUMN_TYPE_LABELS: Record<ColumnType, string> = {
   multiSelect: '多选',
   image: '图片',
   link: '链接',
+}
+export const COLUMN_ALIGN_LABELS: Record<ColumnAlign, string> = {
+  left: '左对齐',
+  center: '居中',
+  right: '右对齐',
+}
+
+export function getDefaultColumnAlign(column: ColumnDef): ColumnAlign {
+  return column.type === 'number' || column.type === 'money' ? 'right' : 'left'
+}
+
+export function getColumnAlign(column: ColumnDef): ColumnAlign {
+  return column.align ?? getDefaultColumnAlign(column)
 }
 
 export function createColumn(title: string, type: ColumnType = 'text'): ColumnDef {
@@ -110,6 +124,7 @@ function normalizeColumnForType(column: ColumnDef, patch: Partial<ColumnDef>): C
       width: column.width,
       lockedWidth: column.lockedWidth,
       wrap: column.wrap,
+      align: column.align,
       required: column.required,
     }
   }
