@@ -270,3 +270,36 @@ Refined narrow-width toolbar grouping and column property sections; added backwa
 ### Next Steps
 
 - None - task complete
+
+
+## Session 9: Portable exports and editor refinement
+
+**Date**: 2026-07-16
+**Task**: Portable exports and editor refinement
+**Branch**: `makuro-haado`
+
+### Summary
+
+Added portable HTML and image-aware exports, HTML/ZIP import recovery, XLSX image embedding, and refined the editor, preview, and responsive toolbar UI.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c0ad841` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
