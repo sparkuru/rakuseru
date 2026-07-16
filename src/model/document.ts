@@ -43,7 +43,7 @@ export type ImageCellValue = {
 
 export type CellValue = string | number | string[] | ImageCellValue
 
-export function createSheetDocument(title = 'Rakuseru 采购清单'): SheetDocument {
+export function createSheetDocument(title = '新的清单'): SheetDocument {
   const columns = [
     createColumn('物品', 'text'),
     createColumn('状态', 'singleSelect'),

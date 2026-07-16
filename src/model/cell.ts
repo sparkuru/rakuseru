@@ -1,4 +1,4 @@
-import type { CellValue, ColumnDef } from './document'
+import type { CellValue, ColumnDef, SheetDocument } from './document'
 
 export function createEmptyCellValue(column: ColumnDef): CellValue {
   switch (column.type) {
@@ -84,4 +84,8 @@ export function isImageValue(value: unknown): value is Extract<CellValue, { kind
     typeof candidate.dataUrl === 'string' &&
     (candidate.fit === undefined || candidate.fit === 'contain' || candidate.fit === 'cover' || candidate.fit === 'fill' || candidate.fit === 'center')
   )
+}
+
+export function documentHasImages(document: SheetDocument): boolean {
+  return document.rows.some((row) => document.columns.some((column) => isImageValue(row.cells[column.id])))
 }

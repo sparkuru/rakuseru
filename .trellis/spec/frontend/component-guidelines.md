@@ -25,6 +25,8 @@ Rakuseru opens directly into the working editor. Do not add landing-page or mark
 
 Toolbar actions should stay visually attached to the title editor when horizontal space tightens. Preserve the command group order document library -> structure -> import -> export, and wrap the action row below the title field instead of letting action groups form detached right-edge vertical stacks.
 
+Use responsive command priority for the toolbar. Below the full-width layout, combine row and column creation into one 添加 selector and reduce import/validation to labeled icon actions; validation issues should retain a visible count badge. On narrow screens, keep document selection/new, 添加, export format, and 导出 visible, while moving duplicate, delete, import, and validation into a 更多 selector. Export format and its confirmation button remain visible primary actions at every width.
+
 ## Accessibility
 
 - Icon-only buttons need `aria-label` and `title`; see row deletion in `src/components/SheetView.tsx` and image clearing in `src/components/CellEditor.tsx`.
@@ -71,7 +73,7 @@ Column schema controls should communicate the kind of value being edited:
 
 Keep switch rows centered within their property blocks so schema panels read as editable property groups, not mixed form fragments.
 
-Use grouped sections for related column metadata. Width controls own the width unit input, width stepper, and `lockedWidth`; general 属性 controls own `wrap`, `required`, and alignment. Width is shown as logical units where `1` maps to the standard non-image column width (`160px`). If a dragged pixel width is fractional in unit terms, stepper actions should snap to the nearest integer unit before continuing with integer steps.
+Use grouped sections for related column metadata. Width controls own the width unit input and `lockedWidth` switch; general 属性 controls own `wrap`, `required`, and alignment. Width is shown as logical units where `1` maps to the standard non-image column width (`160px`). The numeric input's native controls and header drag resizing are the only width-adjustment affordances; do not add duplicate custom `+/-` buttons.
 
 ## Table Selection And Resize
 
@@ -79,7 +81,7 @@ Header selection and cell selection are different modes. Clicking a table header
 
 Column width resizing belongs only in headers. Do not add body-cell resize handles. If `lockedWidth` is true, keep a visible disabled resize affordance in the header and ignore resize attempts.
 
-The first visible table column is a row-number/action column, not document data. Coordinate badges for active cells should use one-based data coordinates that exclude this action column: the first editable data cell is `(x1,y1)`.
+The first visible table column is a row-number/action column, not document data. Coordinate badges use one-based data coordinates that exclude this action column: the first editable data cell is `(x1,y1)`. Render them as non-interactive hover/focus affordances just outside the cell's lower edge; they must not stay visible merely because a cell is selected.
 
 Rows and columns should move through Typora-style drag handles, not arrow-button controls:
 
@@ -99,10 +101,13 @@ Keep preview generation aligned with adapters:
 - CSV preview should call `exportCsv(document)`.
 - JSON preview should call `exportJson(document)`.
 - Markdown preview should call `exportMarkdown(document)`.
+- HTML preview should call `exportHtml(document)` and render that same string in a titled, script-restricted iframe; confirmation should download the already-previewed string. HTML is the initial selected export format.
 - Excel preview should render an HTML table approximation from document rows and columns.
 - `exportXlsxBlob(document)` should run only after the user confirms download, so ExcelJS remains lazy-loaded.
 
 Validation issues in preview are warnings for export, not hard blocks. JSON export must stay available as the lossless backup format even when content validation reports issues.
+
+Keep export content as the dialog's primary upper region. Render validation results below it as a compact, full-width summary/list so the report or source preview retains usable horizontal space; issue lists may scroll independently when long.
 
 Issue rows should be keyboard-accessible buttons when they can select a target cell. Selecting an issue should call the store selection action from the parent boundary, not mutate selection inside the preview component.
 

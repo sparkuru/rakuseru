@@ -174,6 +174,69 @@ try {
 }
 ```
 
+## HTML Handoff Import and Export
+
+### 1. Scope / Trigger
+
+- Trigger: users need a standalone browser report that can later return to Rakuseru for editing.
+- Scope: `src/adapters/exportHtml.ts`, `src/adapters/importHtml.ts`, `src/adapters/importJson.ts`, toolbar file selection, and HTML export preview.
+
+### 2. Signatures
+
+```ts
+exportHtml(document: SheetDocument, exportedAt?: Date): string
+importHtml(content: string): SheetDocument
+importJson(content: string): SheetDocument
+```
+
+### 3. Contracts
+
+- HTML is a derived, self-contained report, never a second canonical document format.
+- `exportHtml` embeds the complete `SheetDocument` once in the inert selector `script#rakuseru-document[type="application/json"]` and escapes script terminators in its JSON text.
+- `importHtml` accepts only that exact single payload, then delegates to `importJson`; only `importJson` crosses the `validateSheetDocument` boundary.
+- UI code chooses the adapter from the accepted file extension and sends a successful result only to `importDocumentAsNew`.
+- Report markup escapes every dynamic value; only absolute `http:` and `https:` link values are anchors.
+- Report image zoom uses unique fragment ids and CSS `:target`, keeping the standalone file script-free; its table is centered at 85% desktop width and uses full width on narrow screens.
+- Markdown embeds valid `data:image/...;base64,...` image values. CSV is text-only and exports an image name; do not claim that a CSV cell renders an image.
+
+### 4. Validation & Error Matrix
+
+- Missing payload marker -> `This HTML file does not contain a Rakuseru document payload.`
+- Multiple payload markers -> `This HTML file contains multiple Rakuseru document payloads.`
+- Malformed payload JSON -> propagate `Invalid JSON: ...` from `importJson`.
+- Structurally invalid payload -> propagate the user-readable `validateSheetDocument` error from `importJson`.
+- One valid payload -> return the validated version-1 `SheetDocument` without changing its title or cells.
+
+### 5. Good/Base/Bad Cases
+
+- Good: HTML preview and download use the same generated string, then re-import creates a new library document losslessly.
+- Base: a report with empty cells still contains an importable canonical payload.
+- Bad: scraping an arbitrary HTML table into a `SheetDocument`, accepting several payloads and guessing which one wins, or parsing the payload directly in `Toolbar`.
+
+### 6. Tests Required
+
+- Assert report structure, inline CSS, image/link rendering, presentation metadata, and dynamic-value escaping.
+- Assert HTML image-lightbox ids and CSS plus Markdown image syntax; assert CSV retains an image filename.
+- Assert exact `exportHtml`/`importHtml` round-trip, including a value containing `</script>`.
+- Assert foreign HTML, duplicate markers, malformed JSON, and invalid canonical payloads produce the expected errors.
+- Browser smoke the HTML option, sandboxed iframe preview, confirmation, and import-as-new flow.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+const document = JSON.parse(payload.textContent ?? '') as SheetDocument
+importDocumentAsNew(document)
+```
+
+Correct:
+
+```ts
+const document = importHtml(content)
+importDocumentAsNew(document)
+```
+
 ## Column Presentation Metadata
 
 ### 1. Scope / Trigger

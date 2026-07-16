@@ -1,5 +1,5 @@
 import { Check, ChevronsLeft, ChevronsRight, ExternalLink, Image as ImageIcon, X } from 'lucide-react'
-import { useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 
 import { createEmptyCellValue, isImageValue, stringifyCellValue } from '../model/cell'
 import { COLUMN_TYPE_LABELS } from '../model/column'
@@ -95,13 +95,32 @@ function CellValuePanel({ row, column }: CellValuePanelProps) {
     commit(emptyValue)
   }
 
-  async function updateImage(file: File | undefined) {
+  const updateImage = useCallback(async (file: File | undefined) => {
     if (!file) {
       return
     }
 
     setImageDraft({ ...(await readImageFile(file)), fit: 'contain' })
-  }
+  }, [])
+
+  useEffect(() => {
+    if (column.type !== 'image') {
+      return
+    }
+
+    function handlePaste(event: ClipboardEvent) {
+      const image = Array.from(event.clipboardData?.files ?? []).find((file) => file.type.startsWith('image/'))
+      if (!image) {
+        return
+      }
+
+      event.preventDefault()
+      void updateImage(image)
+    }
+
+    window.addEventListener('paste', handlePaste)
+    return () => window.removeEventListener('paste', handlePaste)
+  }, [column.type, updateImage])
 
   function saveImage() {
     commit(imageDraft)
@@ -187,7 +206,7 @@ function CellValuePanel({ row, column }: CellValuePanelProps) {
           <section className="panel-section" aria-label="Image cell editor">
             <label className="image-panel-drop">
               <ImageIcon size={18} />
-              <span>{imageDraft ? '替换图片' : '上传图片'}</span>
+              <span>{imageDraft ? '替换图片' : '上传或粘贴图片'}</span>
               <input type="file" accept="image/*" onChange={(event: ChangeEvent<HTMLInputElement>) => void updateImage(event.target.files?.[0])} />
             </label>
             {imageDraft ? (
@@ -209,7 +228,7 @@ function CellValuePanel({ row, column }: CellValuePanelProps) {
                 <p className="panel-note">裁剪和旋转会作为后续图片编辑增强。</p>
               </>
             ) : (
-              <p className="panel-note">选择图片后可设置在单元格中的展示方式。</p>
+              <p className="panel-note">可选择图片，或直接按 Ctrl/⌘ + V 粘贴剪贴板图片。</p>
             )}
             <div className="panel-actions">
               <button type="button" className="text-button" onClick={clearValue}>

@@ -61,4 +61,23 @@ describe('export adapters', () => {
       ].join('\n'),
     )
   })
+
+  it('keeps image names as text in CSV and Markdown', () => {
+    const imageDocument: SheetDocument = {
+      version: 1,
+      title: 'Image export',
+      columns: [{ id: 'image', title: 'Image', type: 'image' }],
+      rows: [
+        {
+          id: 'row_1',
+          cells: {
+            image: { kind: 'image', name: 'desk.png', mime: 'image/png', dataUrl: 'data:image/png;base64,AA==', fit: 'contain' },
+          },
+        },
+      ],
+    }
+
+    expect(exportMarkdown(imageDocument)).toContain('| desk.png |')
+    expect(exportCsv(imageDocument)).toBe('Image\ndesk.png')
+  })
 })

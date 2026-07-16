@@ -4,7 +4,7 @@ import type { ColumnAlign, ColumnDef, ColumnType, RowData, SheetDocument } from 
 
 export const COLUMN_TYPES: ColumnType[] = ['text', 'number', 'money', 'singleSelect', 'multiSelect', 'image', 'link']
 export const COLUMN_ALIGNMENTS: ColumnAlign[] = ['left', 'center', 'right']
-export const DEFAULT_SELECT_OPTIONS = ['待确认', '已采购', '不采购']
+export const DEFAULT_SELECT_OPTIONS = ['选项A', '选项B', '选项C']
 export const COLUMN_TYPE_LABELS: Record<ColumnType, string> = {
   text: '文本',
   number: '数字',

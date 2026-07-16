@@ -151,7 +151,7 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
   },
   createDocument() {
     const currentSnapshot = createCurrentSnapshot(get())
-    const record = createLibraryDocumentRecord(createSheetDocument('新的采购清单'))
+    const record = createLibraryDocumentRecord(createSheetDocument())
     const snapshot = createDocumentLibrarySnapshot([...currentSnapshot.records, record], record.id)
     set({
       documents: snapshot.summaries,

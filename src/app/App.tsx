@@ -10,8 +10,6 @@ export function App() {
   const document = useSheetStore((state) => state.document)
   const load = useSheetStore((state) => state.load)
   const save = useSheetStore((state) => state.save)
-  const status = useSheetStore((state) => state.status)
-  const message = useSheetStore((state) => state.message)
   const sidePanelCollapsed = useSheetStore((state) => state.sidePanelCollapsed)
   const hasLoaded = useRef(false)
 
@@ -33,23 +31,11 @@ export function App() {
     return () => window.clearTimeout(timeoutId)
   }, [document, save])
 
-  const statusLabel = useMemo(() => {
-    if (status === 'saving') {
-      return 'Saving'
-    }
-
-    if (status === 'error') {
-      return message || 'Needs attention'
-    }
-
-    return message || 'Ready'
-  }, [message, status])
-
   const validationIssues = useMemo(() => validateDocumentContent(document), [document])
 
   return (
     <main className="app-shell">
-      <Toolbar statusLabel={statusLabel} validationIssues={validationIssues} />
+      <Toolbar validationIssues={validationIssues} />
       <section className={sidePanelCollapsed ? 'workspace side-panel-collapsed' : 'workspace'} aria-label="Rakuseru sheet workspace">
         <SheetView validationIssues={validationIssues} />
         <EditorSidePanel />

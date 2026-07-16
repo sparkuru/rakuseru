@@ -1,4 +1,4 @@
-import { stringifyCellValue } from '../model/cell'
+import { isImageValue, stringifyCellValue } from '../model/cell'
 import { getColumnAlign } from '../model/column'
 import type { SheetDocument } from '../model/document'
 
@@ -22,11 +22,25 @@ export async function exportXlsxBlob(document: SheetDocument): Promise<Blob> {
 
   for (let rowIndex = 0; rowIndex < document.rows.length; rowIndex += 1) {
     const row = worksheet.getRow(rowIndex + 2)
+    const rowData = document.rows[rowIndex]
     document.columns.forEach((column, index) => {
+      const value = rowData.cells[column.id] ?? ''
       row.getCell(index + 1).alignment = {
         horizontal: getColumnAlign(column),
         vertical: 'middle',
         wrapText: Boolean(column.wrap),
+      }
+
+      if (isImageValue(value)) {
+        const extension = excelImageExtension(value.mime)
+        if (extension) {
+          const imageId = workbook.addImage({ base64: value.dataUrl, extension })
+          worksheet.addImage(imageId, {
+            tl: { col: index, row: rowIndex + 1 },
+            ext: { width: Math.min(column.width ?? 180, 280), height: Math.min(rowData.height ?? 160, 220) },
+          })
+          row.height = Math.max(row.height ?? 0, Math.min(rowData.height ?? 160, 220) * 0.75)
+        }
       }
     })
   }
@@ -36,4 +50,18 @@ export async function exportXlsxBlob(document: SheetDocument): Promise<Blob> {
   return new Blob([arrayBuffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
+}
+
+function excelImageExtension(mime: string): 'png' | 'jpeg' | 'gif' | undefined {
+  switch (mime.toLowerCase()) {
+    case 'image/png':
+      return 'png'
+    case 'image/jpeg':
+    case 'image/jpg':
+      return 'jpeg'
+    case 'image/gif':
+      return 'gif'
+    default:
+      return undefined
+  }
 }

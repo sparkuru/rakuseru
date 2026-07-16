@@ -1,4 +1,4 @@
-import { ChevronsRight, Minus, Plus, Trash2, X } from 'lucide-react'
+import { ChevronsRight, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { COLUMN_ALIGN_LABELS, COLUMN_ALIGNMENTS, COLUMN_TYPES, COLUMN_TYPE_LABELS, getColumnAlign } from '../model/column'
@@ -49,13 +49,6 @@ export function ColumnSchemaPanel() {
     }
 
     updateColumn(selectedColumn.id, { width: Math.max(MIN_WIDTH_UNITS, units) * WIDTH_UNIT_PIXELS })
-  }
-
-  function stepWidthUnits(direction: -1 | 1) {
-    const nearest = Math.max(MIN_WIDTH_UNITS, Math.round(widthUnits))
-    const nextUnits = Number.isInteger(widthUnits) ? nearest + direction : nearest
-
-    updateWidthUnits(Math.max(MIN_WIDTH_UNITS, nextUnits))
   }
 
   return (
@@ -149,14 +142,6 @@ export function ColumnSchemaPanel() {
               aria-label="宽度单位"
             />
           </label>
-          <div className="unit-stepper" aria-label="宽度微调">
-            <button type="button" className="icon-button" onClick={() => stepWidthUnits(1)} title="增加宽度单位" aria-label="增加宽度单位">
-              <Plus size={16} />
-            </button>
-            <button type="button" className="icon-button" onClick={() => stepWidthUnits(-1)} title="减少宽度单位" aria-label="减少宽度单位">
-              <Minus size={16} />
-            </button>
-          </div>
           <label className="property-toggle">
             <input type="checkbox" checked={Boolean(selectedColumn.lockedWidth)} onChange={(event) => updateColumn(selectedColumn.id, { lockedWidth: event.target.checked })} />
             <span className="toggle-switch" aria-hidden="true" />

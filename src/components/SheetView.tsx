@@ -288,6 +288,7 @@ export function SheetView({ validationIssues }: SheetViewProps) {
                 {row.getVisibleCells().map((cell) => {
                   const isDataCell = cell.column.id !== '_rowActions'
                   const isActiveCell = activeCell?.rowId === row.original.id && activeCell.columnId === cell.column.id
+                  const isImageCell = document.columns.some((column) => column.id === cell.column.id && column.type === 'image')
                   const xCoordinate = document.columns.findIndex((column) => column.id === cell.column.id) + 1
                   const yCoordinate = document.rows.findIndex((documentRow) => documentRow.id === row.original.id) + 1
                   const cellIssues = issueByCell.get(`${row.original.id}:${cell.column.id}`) ?? []
@@ -299,6 +300,7 @@ export function SheetView({ validationIssues }: SheetViewProps) {
                         cell.column.id === '_rowActions' && 'row-actions-cell',
                         cell.column.id === selectedColumnId && 'selected-column',
                         isActiveCell && 'active-cell',
+                        isImageCell && 'image-data-cell',
                         cellIssues.length > 0 && 'validation-cell',
                       )}
                       onClick={() => {
@@ -312,7 +314,7 @@ export function SheetView({ validationIssues }: SheetViewProps) {
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       {isDataCell && cellIssues.length > 0 && <span className="validation-marker" title={cellIssues.map((issue) => issue.message).join('\n')} aria-label="校验问题" />}
-                      {isDataCell && isActiveCell && <span className="cell-coordinate">{`(x${xCoordinate},y${yCoordinate})`}</span>}
+                      {isDataCell && <span className="cell-coordinate">{`(x${xCoordinate},y${yCoordinate})`}</span>}
                     </td>
                   )
                 })}

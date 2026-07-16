@@ -11,6 +11,7 @@ describe('SheetDocument model', () => {
     const document = createSheetDocument()
 
     expect(document.version).toBe(1)
+    expect(document.title).toBe('新的清单')
     expect(document.columns.length).toBeGreaterThan(0)
     expect(document.rows.length).toBeGreaterThan(0)
   })
@@ -99,7 +100,7 @@ describe('SheetDocument model', () => {
     const next = updateColumn(document, textColumn.id, { type: 'singleSelect' })
     const nextColumn = next.columns.find((column) => column.id === textColumn.id)!
 
-    expect(nextColumn.options).toEqual(['待确认', '已采购', '不采购'])
+    expect(nextColumn.options).toEqual(['选项A', '选项B', '选项C'])
   })
 
   it('removes options when switching away from select', () => {
@@ -207,7 +208,7 @@ describe('SheetDocument model', () => {
     }
     const editedMulti = {
       ...editedSingle,
-      rows: editedSingle.rows.map((row, index) => index === 0 ? { ...row, cells: { ...row.cells, [multiSelectColumn.id]: ['待确认', '其他'] } } : row),
+      rows: editedSingle.rows.map((row, index) => index === 0 ? { ...row, cells: { ...row.cells, [multiSelectColumn.id]: ['选项A', '其他'] } } : row),
     }
     const issues = validateDocumentContent(editedMulti)
 
