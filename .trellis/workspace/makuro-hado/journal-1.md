@@ -303,3 +303,36 @@ Added portable HTML and image-aware exports, HTML/ZIP import recovery, XLSX imag
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: XLSX import mapping review
+
+**Date**: 2026-07-17
+**Task**: XLSX import mapping review
+**Branch**: `makuro-haado`
+
+### Summary
+
+Added a lazy-loaded XLSX import preview and mapping confirmation flow. Users select one worksheet, edit headers and column types, receive blocking conversion errors or non-blocking merge/image warnings, and create a new local sheet only after confirmation. Validated lint, typecheck, 57 tests, production build, and browser smoke.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3b4f224` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
