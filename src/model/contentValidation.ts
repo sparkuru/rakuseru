@@ -1,5 +1,6 @@
 import { isImageValue } from './cell'
 import type { CellValue, ColumnDef, RowData, SheetDocument } from './document'
+import { isHttpUrl } from './url'
 
 export type ValidationSeverity = 'warning' | 'error'
 
@@ -84,13 +85,4 @@ function isMissingRequiredValue(column: ColumnDef, value: CellValue | undefined)
 
 function isConfiguredOption(column: ColumnDef, value: string): boolean {
   return Boolean(column.options?.includes(value))
-}
-
-function isHttpUrl(value: string): boolean {
-  try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:'
-  } catch {
-    return false
-  }
 }

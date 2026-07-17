@@ -304,6 +304,70 @@ Correct:
 const horizontal = getColumnAlign(column)
 ```
 
+## XLSX Import Review Contract
+
+### 1. Scope / Trigger
+
+- Trigger: XLSX is an external, lossy source format that needs user-approved schema mapping before it can become a canonical `SheetDocument`.
+- Scope: `src/adapters/importXlsx.ts`, `src/components/ImportXlsxDialog.tsx`, and the XLSX branch of `src/components/Toolbar.tsx`.
+
+### 2. Signatures
+
+```ts
+parseXlsxWorkbook(content: ArrayBuffer): Promise<XlsxImportWorkbook>
+createXlsxColumnMappings(sheet: XlsxImportSheet): XlsxColumnMapping[]
+buildXlsxDocument(sheet: XlsxImportSheet, mappings: XlsxColumnMapping[], title?: string): XlsxImportBuildResult
+```
+
+### 3. Contracts
+
+- `parseXlsxWorkbook` dynamically imports ExcelJS and returns normalized, dialog-local worksheet previews; it must not mutate Zustand state or persist data.
+- `XlsxImportWorkbook.defaultSheetName` is the first non-empty sheet. A confirmation imports exactly one selected worksheet through `importDocumentAsNew`.
+- The preview uses the first non-empty row for editable headers, removes wholly empty columns/data rows, and retains source row/column locations for errors.
+- Mappings default to text. Image is not an XLSX-mappable destination type because embedded images are intentionally not extracted.
+- `buildXlsxDocument` returns no `document` whenever it has an error issue. Only a successful build may reach `importDocumentAsNew`.
+- Formula cells become plain text; dates use a stable display-oriented date string and cannot silently map to number/money. Merges and embedded images create warnings, not persistence side effects.
+- Link mappings use the shared `isHttpUrl` predicate so active-document validation and import validation accept the same protocols.
+
+### 4. Validation & Error Matrix
+
+- Malformed XLSX or no non-empty worksheet -> throw a user-readable parser error; Toolbar calls `setError` and leaves the library unchanged.
+- Empty selected worksheet, blank title/header, duplicate header, missing mapping -> error issue and no result document.
+- Number/money source value cannot convert, or source is a date -> error issue and no result document.
+- Link value is not `http:` or `https:` -> error issue and no result document.
+- Embedded image or merged cells -> warning issue; import remains available when no errors exist.
+
+### 5. Good/Base/Bad Cases
+
+- Good: parse a file, edit titles/types in `ImportXlsxDialog`, call `buildXlsxDocument`, then send only its `document` to `importDocumentAsNew`.
+- Base: all-text worksheet imports using the default mappings without any schema inference beyond the source headers.
+- Bad: call `importDocumentAsNew` while parsing, parse ExcelJS objects in a component, or coerce an invalid numeric/link mapping to an empty value.
+
+### 6. Tests Required
+
+- Adapter tests cover first non-empty sheet selection, blank row/column removal, mapped number/money/select conversion, and zero-document errors.
+- Adapter tests cover formula text, date-to-number blocking, merge warnings, and image warnings.
+- Browser smoke covers cancel-without-library-change, a blocking mapping with disabled confirmation, and a warning-only import that creates one new active document.
+- Keep the full lint, typecheck, test, and production-build checks green; ensure ExcelJS remains dynamically imported.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+const workbook = await parseXlsxWorkbook(content)
+importDocumentAsNew(buildXlsxDocument(workbook.sheets[0], mappings).document!)
+```
+
+Correct:
+
+```ts
+const result = buildXlsxDocument(sheet, mappings, title)
+if (result.document) {
+  importDocumentAsNew(result.document, 'Imported Excel sheet')
+}
+```
+
 ## Type Guards And Coercion
 
 Use type guards for untrusted values, such as `isImageValue` in `src/model/cell.ts`. Keep coercion in `src/model/cell.ts` so UI edits, imports, and storage reads share behavior.

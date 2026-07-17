@@ -9,12 +9,14 @@ import { exportMarkdown } from '../adapters/exportMarkdown'
 import { exportXlsxBlob } from '../adapters/exportXlsx'
 import { importHtml } from '../adapters/importHtml'
 import { importJson } from '../adapters/importJson'
+import { parseXlsxWorkbook, type XlsxImportWorkbook } from '../adapters/importXlsx'
 import { COLUMN_TYPES, COLUMN_TYPE_LABELS } from '../model/column'
 import { documentHasImages } from '../model/cell'
 import type { ValidationIssue } from '../model/contentValidation'
 import { useSheetStore } from '../state/sheetStore'
 import { downloadBlob, downloadText } from '../utils/download'
 import { ExportPreviewDialog, type ExportFormat } from './ExportPreviewDialog'
+import { ImportXlsxDialog } from './ImportXlsxDialog'
 
 type ToolbarProps = {
   validationIssues: ValidationIssue[]
@@ -24,6 +26,7 @@ export function Toolbar({ validationIssues }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [exportFormat, setExportFormat] = useState<ExportFormat>('html')
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const [xlsxImportWorkbook, setXlsxImportWorkbook] = useState<XlsxImportWorkbook>()
   const documents = useSheetStore((state) => state.documents)
   const activeDocumentId = useSheetStore((state) => state.activeDocumentId)
   const document = useSheetStore((state) => state.document)
@@ -47,12 +50,16 @@ export function Toolbar({ validationIssues }: ToolbarProps) {
 
     try {
       const filename = file.name.toLowerCase()
-      const importedDocument = filename.endsWith('.zip')
-        ? await importJsonZip(await file.arrayBuffer())
-        : filename.endsWith('.html')
-          ? importHtml(await file.text())
-          : importJson(await file.text())
-      importDocumentAsNew(importedDocument, `Imported ${file.name}`)
+      if (filename.endsWith('.xlsx')) {
+        setXlsxImportWorkbook(await parseXlsxWorkbook(await file.arrayBuffer()))
+      } else {
+        const importedDocument = filename.endsWith('.zip')
+          ? await importJsonZip(await file.arrayBuffer())
+          : filename.endsWith('.html')
+            ? importHtml(await file.text())
+            : importJson(await file.text())
+        importDocumentAsNew(importedDocument, `Imported ${file.name}`)
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : `Could not import ${file.name}`)
     } finally {
@@ -215,9 +222,9 @@ export function Toolbar({ validationIssues }: ToolbarProps) {
             </select>
           </div>
 
-          <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,application/zip,.zip,text/html,.html" onChange={(event) => void handleImport(event.target.files?.[0])} />
+          <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,application/zip,.zip,text/html,.html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx" onChange={(event) => void handleImport(event.target.files?.[0])} />
           <div className="action-group toolbar-import-actions" aria-label="Import actions">
-            <button type="button" className="text-icon-button toolbar-secondary-action" onClick={() => fileInputRef.current?.click()} title="导入 JSON、JSON ZIP 或 HTML 为新清单" aria-label="导入 JSON、JSON ZIP 或 HTML 为新清单">
+            <button type="button" className="text-icon-button toolbar-secondary-action" onClick={() => fileInputRef.current?.click()} title="导入 JSON、JSON ZIP、HTML 或 XLSX 为新清单" aria-label="导入 JSON、JSON ZIP、HTML 或 XLSX 为新清单">
               <Upload size={16} />
               <span className="toolbar-action-label">导入</span>
             </button>
@@ -277,6 +284,16 @@ export function Toolbar({ validationIssues }: ToolbarProps) {
           onClose={() => setIsPreviewOpen(false)}
           onConfirm={handleExport}
           onSelectIssue={handleSelectIssue}
+        />
+      )}
+      {xlsxImportWorkbook && (
+        <ImportXlsxDialog
+          workbook={xlsxImportWorkbook}
+          onClose={() => setXlsxImportWorkbook(undefined)}
+          onConfirm={(importedDocument) => {
+            importDocumentAsNew(importedDocument, 'Imported Excel sheet')
+            setXlsxImportWorkbook(undefined)
+          }}
         />
       )}
     </>

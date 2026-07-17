@@ -1282,6 +1282,61 @@ textarea {
   background: #ffffff;
 }
 
+.import-xlsx-dialog {
+  width: min(88vw, 1100px);
+}
+
+.import-xlsx-dialog-body {
+  overflow: auto;
+}
+
+.import-xlsx-settings,
+.import-xlsx-mappings {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.import-xlsx-settings {
+  grid-template-columns: minmax(180px, 0.6fr) minmax(240px, 1fr) minmax(160px, auto);
+  align-items: end;
+  border-bottom: 1px solid #e2e7eb;
+}
+
+.import-xlsx-mappings {
+  min-height: 0;
+}
+
+.import-xlsx-mapping-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.import-xlsx-mapping-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(180px, 1fr) minmax(130px, 0.5fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.import-xlsx-source-title {
+  overflow: hidden;
+  color: #52606d;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .import-xlsx-settings,
+  .import-xlsx-mapping-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
