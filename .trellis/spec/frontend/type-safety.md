@@ -370,6 +370,57 @@ if (result.document) {
 
 ## Type Guards And Coercion
 
+## Background Color Presentation Contract
+
+### 1. Scope / Trigger
+
+- Trigger: persistent presentation metadata crosses the document model, editor panels, JSON validation, and HTML/XLSX adapters.
+
+### 2. Signatures
+
+```ts
+normalizeBackgroundColor(value: unknown): string | undefined
+getCellBackgroundColor(row: RowData, column: ColumnDef): string | undefined
+updateCellBackgroundColor(document, rowId, columnId, color): SheetDocument
+```
+
+### 3. Contracts
+
+- `ColumnDef.backgroundColor`, `RowData.backgroundColor`, and `RowData.cellBackgroundColors[columnId]` are optional normalized `#RRGGBB` values.
+- Resolve data cells as cell > row > column. Headers use their column color; row-action cells use their row color.
+- JSON validation drops invalid optional colors; CSV/Markdown ignore colors while HTML/XLSX use the resolved result.
+
+### 4. Validation & Error Matrix
+
+- `#abc` -> normalize to `#AABBCC`.
+- Invalid or unknown color key -> omit it without rejecting a valid document.
+- Removed column -> remove its cell-color entries from every row.
+
+### 5. Good/Base/Bad Cases
+
+- Good: UI and exports call `getCellBackgroundColor` rather than repeating precedence.
+- Base: old documents without colors keep their previous appearance.
+- Bad: storing cell color inside `CellValue`, which changes every value variant and leaves stale metadata on schema edits.
+
+### 6. Tests Required
+
+- Test normalization, precedence, JSON compatibility, and column cleanup.
+- Test HTML style output, XLSX fills, and browser set/override/clear behavior.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+const color = row.backgroundColor ?? column.backgroundColor
+```
+
+Correct:
+
+```ts
+const color = getCellBackgroundColor(row, column)
+```
+
 Use type guards for untrusted values, such as `isImageValue` in `src/model/cell.ts`. Keep coercion in `src/model/cell.ts` so UI edits, imports, and storage reads share behavior.
 
 ## Tests

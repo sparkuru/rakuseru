@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 import { addColumn, createColumn, moveColumn, moveColumnToIndex, removeColumn, updateColumn } from '../model/column'
 import { createSheetDocument } from '../model/document'
-import type { CellValue, ColumnDef, ColumnType, SheetDocument } from '../model/document'
+import type { CellValue, ColumnDef, ColumnType, RowData, SheetDocument } from '../model/document'
 import {
   createDefaultLibrarySnapshot,
   createDocumentLibrarySnapshot,
@@ -12,7 +12,7 @@ import {
   type LibraryDocumentSummary,
   updateLibraryDocumentRecord,
 } from '../model/library'
-import { addRow, moveRow, moveRowToIndex, removeRow, updateCell } from '../model/row'
+import { addRow, moveRow, moveRowToIndex, removeRow, updateCell, updateCellBackgroundColor, updateRow } from '../model/row'
 import { loadDocumentLibrary, saveActiveLibraryDocument, saveDocumentLibrary } from '../storage/indexedDb'
 
 type SheetStatus = 'idle' | 'loading' | 'saving' | 'saved' | 'error'
@@ -24,6 +24,9 @@ type ActiveCell = {
 
 export type RightPanelMode = {
   kind: 'empty'
+} | {
+  kind: 'row'
+  rowId: string
 } | {
   kind: 'column'
   columnId: string
@@ -66,6 +69,8 @@ type SheetStore = {
   moveRowToIndex: (rowId: string, targetIndex: number) => void
   removeRow: (rowId: string) => void
   updateCell: (rowId: string, columnId: string, value: CellValue) => void
+  updateRow: (rowId: string, patch: Pick<RowData, 'backgroundColor'>) => void
+  updateCellBackgroundColor: (rowId: string, columnId: string, backgroundColor: string | undefined) => void
   selectRow: (rowId: string) => void
   selectCell: (rowId: string, columnId: string) => void
   selectColumn: (columnId: string) => void
@@ -275,7 +280,7 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
       const document = removeColumn(state.document, columnId)
       const selectedColumnId = state.selectedColumnId === columnId ? document.columns[0]?.id : state.selectedColumnId
       const activeCell = state.activeCell?.columnId === columnId ? undefined : state.activeCell
-      const rightPanelMode: RightPanelMode = state.rightPanelMode.kind !== 'empty' && state.rightPanelMode.columnId === columnId ? { kind: 'empty' } : state.rightPanelMode
+      const rightPanelMode: RightPanelMode = state.rightPanelMode.kind === 'column' && state.rightPanelMode.columnId === columnId ? { kind: 'empty' } : state.rightPanelMode
       return {
         document,
         selectedColumnId,
@@ -326,8 +331,14 @@ export const useSheetStore = create<SheetStore>((set, get) => ({
   updateCell(rowId, columnId, value) {
     set((state) => ({ document: updateCell(state.document, rowId, columnId, value), status: 'idle', message: 'Cell updated' }))
   },
+  updateRow(rowId, patch) {
+    set((state) => ({ document: updateRow(state.document, rowId, patch), activeRowId: rowId, rightPanelMode: { kind: 'row', rowId }, status: 'idle', message: 'Row updated' }))
+  },
+  updateCellBackgroundColor(rowId, columnId, backgroundColor) {
+    set((state) => ({ document: updateCellBackgroundColor(state.document, rowId, columnId, backgroundColor), activeRowId: rowId, activeCell: { rowId, columnId }, rightPanelMode: { kind: 'cell', rowId, columnId }, status: 'idle', message: 'Cell color updated' }))
+  },
   selectRow(rowId) {
-    set({ activeRowId: rowId, activeCell: undefined, rightPanelMode: { kind: 'empty' } })
+    set({ activeRowId: rowId, activeCell: undefined, rightPanelMode: { kind: 'row', rowId }, sidePanelCollapsed: false })
   },
   selectCell(rowId, columnId) {
     set({ activeRowId: rowId, activeCell: { rowId, columnId }, selectedColumnId: columnId, rightPanelMode: { kind: 'cell', rowId, columnId } })

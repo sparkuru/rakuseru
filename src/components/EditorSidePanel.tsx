@@ -7,6 +7,7 @@ import type { CellValue, ColumnDef, ImageCellValue, ImageFit, RowData } from '..
 import { useSheetStore } from '../state/sheetStore'
 import { readImageFile } from '../utils/image'
 import { ColumnSchemaPanel } from './HeaderEditor'
+import { BackgroundColorControl } from './BackgroundColorControl'
 
 const IMAGE_FIT_LABELS: Record<ImageFit, string> = {
   contain: '完整显示',
@@ -35,6 +36,13 @@ export function EditorSidePanel() {
 
   if (rightPanelMode.kind === 'column') {
     return <ColumnSchemaPanel />
+  }
+
+  if (rightPanelMode.kind === 'row') {
+    const row = document.rows.find((candidate) => candidate.id === rightPanelMode.rowId)
+    if (row) {
+      return <RowStylePanel row={row} />
+    }
   }
 
   if (rightPanelMode.kind === 'cell') {
@@ -67,8 +75,24 @@ type CellValuePanelProps = {
   column: ColumnDef
 }
 
+function RowStylePanel({ row }: { row: RowData }) {
+  const updateRow = useSheetStore((state) => state.updateRow)
+  const toggleSidePanel = useSheetStore((state) => state.toggleSidePanel)
+
+  return (
+    <aside className="schema-panel" aria-label="Row editor">
+      <div className="panel-heading">
+        <div><span className="panel-kicker">行属性</span><h2>第 {row.id}</h2></div>
+        <button type="button" className="icon-button ghost" onClick={toggleSidePanel} title="收起右侧面板" aria-label="收起右侧面板"><ChevronsRight size={16} /></button>
+      </div>
+      <section className="panel-section"><BackgroundColorControl label="行" color={row.backgroundColor} onChange={(backgroundColor) => updateRow(row.id, { backgroundColor })} /></section>
+    </aside>
+  )
+}
+
 function CellValuePanel({ row, column }: CellValuePanelProps) {
   const updateCell = useSheetStore((state) => state.updateCell)
+  const updateCellBackgroundColor = useSheetStore((state) => state.updateCellBackgroundColor)
   const selectColumn = useSheetStore((state) => state.selectColumn)
   const toggleSidePanel = useSheetStore((state) => state.toggleSidePanel)
   const value = row.cells[column.id] ?? createEmptyCellValue(column)
@@ -148,6 +172,8 @@ function CellValuePanel({ row, column }: CellValuePanelProps) {
           <strong>{column.title}</strong>
         </div>
       </section>
+
+      <section className="panel-section"><BackgroundColorControl label="单元格" color={row.cellBackgroundColors?.[column.id]} onChange={(backgroundColor) => updateCellBackgroundColor(row.id, column.id, backgroundColor)} /></section>
 
       {renderEditor()}
     </aside>

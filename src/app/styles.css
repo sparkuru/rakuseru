@@ -957,6 +957,55 @@ textarea {
   line-height: 1.5;
 }
 
+.color-control {
+  display: grid;
+  gap: 9px;
+}
+
+.field-label {
+  color: #52606d;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.color-preset-list,
+.color-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #b5c0c9;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .6);
+}
+
+.color-swatch.selected {
+  outline: 3px solid #0f6b63;
+  outline-offset: 2px;
+}
+
+.color-input-label {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 34px;
+  color: #52606d;
+  font-size: 13px;
+}
+
+.color-input-label input {
+  width: 34px;
+  height: 28px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
 .meta-row {
   display: flex;
   align-items: center;

@@ -1,5 +1,6 @@
 import { isImageValue, stringifyCellValue } from '../model/cell'
 import { getColumnAlign } from '../model/column'
+import { getCellBackgroundColor } from '../model/color'
 import type { CellValue, ColumnDef, RowData, SheetDocument } from '../model/document'
 
 const PAYLOAD_ID = 'rakuseru-document'
@@ -48,7 +49,7 @@ export function exportHtml(document: SheetDocument, exportedAt = new Date()): st
       </header>
       <div class="table-wrap">
         <table>
-          <thead><tr>${document.columns.map((column) => `<th${createColumnStyle(column)}>${escapeHtml(column.title)}</th>`).join('')}</tr></thead>
+          <thead><tr>${document.columns.map((column) => `<th${createColumnStyle(column, column.backgroundColor)}>${escapeHtml(column.title)}</th>`).join('')}</tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -59,7 +60,7 @@ export function exportHtml(document: SheetDocument, exportedAt = new Date()): st
 </html>`
 }
 
-function createColumnStyle(column: ColumnDef): string {
+function createColumnStyle(column: ColumnDef, backgroundColor?: string): string {
   const styles = [`text-align: ${getColumnAlign(column)}`]
 
   if (column.width && Number.isFinite(column.width) && column.width > 0) {
@@ -68,6 +69,9 @@ function createColumnStyle(column: ColumnDef): string {
 
   if (column.wrap) {
     styles.push('white-space: pre-wrap')
+  }
+  if (backgroundColor) {
+    styles.push(`background-color: ${backgroundColor}`)
   }
 
   return ` style="${styles.join('; ')}"`
@@ -82,7 +86,7 @@ function createRowStyle(height: number | undefined): string {
 }
 
 function renderRow(row: RowData, columns: ColumnDef[], rowIndex: number): string {
-  return `<tr${createRowStyle(row.height)}>${columns.map((column, columnIndex) => `<td${createColumnStyle(column)}>${renderCell(column, row.cells[column.id] ?? '', imageLightboxId(rowIndex, columnIndex))}</td>`).join('')}</tr>`
+  return `<tr${createRowStyle(row.height)}>${columns.map((column, columnIndex) => `<td${createColumnStyle(column, getCellBackgroundColor(row, column))}>${renderCell(column, row.cells[column.id] ?? '', imageLightboxId(rowIndex, columnIndex))}</td>`).join('')}</tr>`
 }
 
 function renderCell(column: ColumnDef, value: CellValue, imageId: string): string {

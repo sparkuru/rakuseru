@@ -8,7 +8,7 @@ const document: SheetDocument = {
   version: 1,
   title: 'Procurement <report>',
   columns: [
-    { id: 'item', title: 'Item', type: 'text', width: 220, wrap: true },
+    { id: 'item', title: 'Item', type: 'text', width: 220, wrap: true, backgroundColor: '#D0EBFF' },
     { id: 'budget', title: 'Budget', type: 'money', align: 'right' },
     { id: 'link', title: 'Link', type: 'link' },
     { id: 'image', title: 'Image', type: 'image' },
@@ -17,6 +17,8 @@ const document: SheetDocument = {
     {
       id: 'row_1',
       height: 180,
+      backgroundColor: '#D3F9D8',
+      cellBackgroundColors: { budget: '#FFF3BF' },
       cells: {
         item: 'Desk <script>alert("no")</script>',
         budget: 1200,
@@ -40,6 +42,9 @@ describe('HTML export and import', () => {
     expect(html).toContain('width: 220px')
     expect(html).toContain('white-space: pre-wrap')
     expect(html).toContain('height: 180px')
+    expect(html).toContain('background-color: #D0EBFF')
+    expect(html).toContain('background-color: #D3F9D8')
+    expect(html).toContain('background-color: #FFF3BF')
     expect(html).toContain('class="fit-contain"')
     expect(html).toContain('href="https://example.com/item?name=desk&amp;ref=report"')
     expect(html).toContain('target="_blank"')

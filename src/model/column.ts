@@ -60,7 +60,9 @@ export function removeColumn(document: SheetDocument, columnId: string): SheetDo
     rows: document.rows.map((row) => {
       const cells = { ...row.cells }
       delete cells[columnId]
-      return { ...row, cells }
+      const cellBackgroundColors = { ...row.cellBackgroundColors }
+      delete cellBackgroundColors[columnId]
+      return { ...row, cells, cellBackgroundColors: Object.keys(cellBackgroundColors).length > 0 ? cellBackgroundColors : undefined }
     }),
   }
 }
@@ -126,6 +128,7 @@ function normalizeColumnForType(column: ColumnDef, patch: Partial<ColumnDef>): C
       wrap: column.wrap,
       align: column.align,
       required: column.required,
+      backgroundColor: column.backgroundColor,
     }
   }
 

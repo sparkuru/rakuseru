@@ -1,5 +1,6 @@
 import { COLUMN_ALIGNMENTS, COLUMN_TYPES } from './column'
 import { coerceCellValue, createEmptyCellValue, isImageValue } from './cell'
+import { normalizeBackgroundColor } from './color'
 import type { CellValue, ColumnAlign, ColumnDef, RowData, SheetDocument } from './document'
 
 export type ValidationResult<T> = {
@@ -86,6 +87,7 @@ function normalizeColumn(input: unknown, index: number, errors: string[]): Colum
     align: readOptionalAlignment(input.align),
     options: readOptionalStringArray(input.options),
     required: readOptionalBoolean(input.required),
+    backgroundColor: normalizeBackgroundColor(input.backgroundColor),
   }
 }
 
@@ -121,8 +123,26 @@ function normalizeRow(input: unknown, index: number, columns: ColumnDef[], error
     id: typeof input.id === 'string' ? input.id : `invalid-${index}`,
     height: readOptionalNumber(input.height),
     lockedHeight: readOptionalBoolean(input.lockedHeight),
+    backgroundColor: normalizeBackgroundColor(input.backgroundColor),
+    cellBackgroundColors: normalizeCellBackgroundColors(input.cellBackgroundColors, columns),
     cells,
   }
+}
+
+function normalizeCellBackgroundColors(input: unknown, columns: ColumnDef[]): Record<string, string> | undefined {
+  if (!isRecord(input)) {
+    return undefined
+  }
+
+  const allowedIds = new Set(columns.map((column) => column.id))
+  const colors = Object.fromEntries(Object.entries(input)
+    .filter(([columnId]) => allowedIds.has(columnId))
+    .flatMap(([columnId, color]) => {
+      const normalizedColor = normalizeBackgroundColor(color)
+      return normalizedColor ? [[columnId, normalizedColor]] : []
+    }))
+
+  return Object.keys(colors).length > 0 ? colors : undefined
 }
 
 function readCellValue(input: unknown): CellValue | undefined {

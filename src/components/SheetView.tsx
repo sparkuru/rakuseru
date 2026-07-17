@@ -8,6 +8,7 @@ import { GripHorizontal, GripVertical, Trash2 } from 'lucide-react'
 import { useCallback, useMemo, useState, type DragEvent as ReactDragEvent, type PointerEvent as ReactPointerEvent } from 'react'
 
 import { COLUMN_TYPE_LABELS } from '../model/column'
+import { getCellBackgroundColor } from '../model/color'
 import type { ValidationIssue } from '../model/contentValidation'
 import type { RowData } from '../model/document'
 import { useSheetStore } from '../state/sheetStore'
@@ -232,7 +233,7 @@ export function SheetView({ validationIssues }: SheetViewProps) {
                       header.id === draggingColumnId && 'dragging-column',
                       header.id === columnDropId && 'drag-over-column',
                     )}
-                    style={{ width: header.getSize() }}
+                    style={{ width: header.getSize(), backgroundColor: document.columns.find((column) => column.id === header.id)?.backgroundColor }}
                     onDragOver={(event) => {
                       if (!event.dataTransfer.types.includes(COLUMN_DRAG_TYPE) || header.id === '_rowActions') {
                         return
@@ -292,6 +293,8 @@ export function SheetView({ validationIssues }: SheetViewProps) {
                   const xCoordinate = document.columns.findIndex((column) => column.id === cell.column.id) + 1
                   const yCoordinate = document.rows.findIndex((documentRow) => documentRow.id === row.original.id) + 1
                   const cellIssues = issueByCell.get(`${row.original.id}:${cell.column.id}`) ?? []
+                  const column = document.columns.find((candidate) => candidate.id === cell.column.id)
+                  const backgroundColor = cell.column.id === '_rowActions' ? row.original.backgroundColor : column ? getCellBackgroundColor(row.original, column) : undefined
 
                   return (
                     <td
@@ -303,6 +306,7 @@ export function SheetView({ validationIssues }: SheetViewProps) {
                         isImageCell && 'image-data-cell',
                         cellIssues.length > 0 && 'validation-cell',
                       )}
+                      style={{ backgroundColor }}
                       onClick={() => {
                         if (!isDataCell) {
                           selectRow(row.original.id)

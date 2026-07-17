@@ -1,6 +1,6 @@
 import { coerceCellValue, createEmptyCellValue } from './cell'
 import { createRow } from './document'
-import type { CellValue, SheetDocument } from './document'
+import type { CellValue, RowData, SheetDocument } from './document'
 
 export function addRow(document: SheetDocument): SheetDocument {
   return {
@@ -71,5 +71,36 @@ export function updateCell(document: SheetDocument, rowId: string, columnId: str
           }
         : row,
     ),
+  }
+}
+
+export function updateRow(document: SheetDocument, rowId: string, patch: Pick<RowData, 'backgroundColor'>): SheetDocument {
+  return {
+    ...document,
+    rows: document.rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)),
+  }
+}
+
+export function updateCellBackgroundColor(document: SheetDocument, rowId: string, columnId: string, backgroundColor: string | undefined): SheetDocument {
+  if (!document.columns.some((column) => column.id === columnId)) {
+    return document
+  }
+
+  return {
+    ...document,
+    rows: document.rows.map((row) => {
+      if (row.id !== rowId) {
+        return row
+      }
+
+      const cellBackgroundColors = { ...row.cellBackgroundColors }
+      if (backgroundColor) {
+        cellBackgroundColors[columnId] = backgroundColor
+      } else {
+        delete cellBackgroundColors[columnId]
+      }
+
+      return { ...row, cellBackgroundColors: Object.keys(cellBackgroundColors).length > 0 ? cellBackgroundColors : undefined }
+    }),
   }
 }

@@ -22,12 +22,15 @@ export type ColumnDef = {
   align?: ColumnAlign
   options?: string[]
   required?: boolean
+  backgroundColor?: string
 }
 
 export type RowData = {
   id: string
   height?: number
   lockedHeight?: boolean
+  backgroundColor?: string
+  cellBackgroundColors?: Record<string, string>
   cells: Record<string, CellValue>
 }
 

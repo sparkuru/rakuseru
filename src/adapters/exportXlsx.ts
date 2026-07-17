@@ -1,5 +1,6 @@
 import { isImageValue, stringifyCellValue } from '../model/cell'
 import { getColumnAlign } from '../model/column'
+import { getCellBackgroundColor, toExcelFillColor } from '../model/color'
 import type { SheetDocument } from '../model/document'
 
 export async function exportXlsxBlob(document: SheetDocument): Promise<Blob> {
@@ -19,6 +20,11 @@ export async function exportXlsxBlob(document: SheetDocument): Promise<Blob> {
   const headerRow = worksheet.getRow(1)
   headerRow.font = { bold: true }
   headerRow.alignment = { vertical: 'middle' }
+  document.columns.forEach((column, index) => {
+    if (column.backgroundColor) {
+      headerRow.getCell(index + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: toExcelFillColor(column.backgroundColor) } }
+    }
+  })
 
   for (let rowIndex = 0; rowIndex < document.rows.length; rowIndex += 1) {
     const row = worksheet.getRow(rowIndex + 2)
@@ -29,6 +35,10 @@ export async function exportXlsxBlob(document: SheetDocument): Promise<Blob> {
         horizontal: getColumnAlign(column),
         vertical: 'middle',
         wrapText: Boolean(column.wrap),
+      }
+      const backgroundColor = getCellBackgroundColor(rowData, column)
+      if (backgroundColor) {
+        row.getCell(index + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: toExcelFillColor(backgroundColor) } }
       }
 
       if (isImageValue(value)) {

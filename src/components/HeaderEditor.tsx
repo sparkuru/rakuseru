@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { COLUMN_ALIGN_LABELS, COLUMN_ALIGNMENTS, COLUMN_TYPES, COLUMN_TYPE_LABELS, getColumnAlign } from '../model/column'
 import type { ColumnAlign, ColumnType } from '../model/document'
 import { useSheetStore } from '../state/sheetStore'
+import { BackgroundColorControl } from './BackgroundColorControl'
 
 const WIDTH_UNIT_PIXELS = 160
 const MIN_WIDTH_UNITS = 1
@@ -176,6 +177,10 @@ export function ColumnSchemaPanel() {
             ))}
           </select>
         </label>
+      </section>
+
+      <section className="panel-section" aria-label="Column color">
+        <BackgroundColorControl label="列" color={selectedColumn.backgroundColor} onChange={(backgroundColor) => updateColumn(selectedColumn.id, { backgroundColor })} />
       </section>
 
       <section className="panel-section danger-zone" aria-label="Danger zone">
