@@ -15,7 +15,7 @@ Use the narrow repo-local wrapper:
 
 Run these commands serially. The current `./hako` wrapper publishes Vite port 5173 for every invocation, so parallel `./hako ...` commands can fail with a Docker port-allocation error even when the underlying check is healthy.
 
-Run `./hako npm audit --omit=dev` after adding runtime dependencies. For user-facing UI work, perform a browser smoke test in addition to automated checks when possible.
+Run `./hako npm audit --omit=dev` after adding runtime dependencies. For browser-accessible UI work, read the `Trellis Plus: Playwright Validation Profile` in `index.md`, classify the task, and run focused reproducible browser coverage when the profile supports it. If appropriate automation is unavailable, record the exact blocker and targeted replacement evidence instead of reporting a generic smoke pass.
 
 ## Current Tooling
 
@@ -28,7 +28,9 @@ Run `./hako npm audit --omit=dev` after adding runtime dependencies. For user-fa
 
 - Model helpers and import validation need unit tests.
 - Adapter behavior should be tested when escaping, file format, or error behavior changes.
-- UI-visible workflow changes need a browser smoke test and, when practical, a focused component or integration test.
+- UI-visible workflow changes need a focused browser test when their acceptance criteria are browser-automatable, plus focused component or integration coverage where it adds distinct signal.
+- Prefer semantic browser locators and deterministic test-owned data. Cover changed focus, keyboard, accessible-name, responsive, and error/success states when applicable.
+- Preserve failure artifacts and do not update screenshot baselines without an intentional review reason.
 - Keep tests close to the module they verify; `src/model/document.test.ts` is the current pattern.
 
 ## Dependency And Bundle Review

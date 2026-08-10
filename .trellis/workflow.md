@@ -177,6 +177,8 @@ Create new children with `task.py create "<title>" --slug <name> --parent <paren
 No active task. First classify the current turn and ask for task-creation consent before creating any Trellis task.
 Simple conversation / small task: ask only whether this turn should create a Trellis task. If the user says no, skip Trellis for this session.
 Complex task: ask the user if you can create a Trellis task and enter the planning phase. If the user says no, explain, clarify scope, or suggest a smaller split.
+
+Trellis Plus mainline continuity: for a project-relevant continuation, status, next-step, or post-archive request, run a read-only Project Pulse before proposing work. Read `.trellis/mainline.md` when it exists, active and archived task evidence, git state, and available validation results. Default to `guided`: recommend a uniquely ready action and wait for the user to choose. Honor `paused` without creating work, and continue serially only when the record contains explicit bounded authorization, ordered work, dependencies, and stop conditions. If the record or approved objective is missing, the worktree is dirty, checks or archive evidence are unresolved, candidates are ambiguous, or scope/risk/dependencies changed, report the exact condition and ask for the one needed decision. Do not create a task or edit product files during the Pulse.
 [/workflow-state:no_task]
 
 ### Phase 1: Plan
@@ -194,6 +196,7 @@ Load `trellis-brainstorm`; stay in planning.
 Lightweight: `prd.md` can be enough. Complex: finish `prd.md`, `design.md`, and `implement.md`; ask for review before `task.py start`.
 Multi-deliverable scope: consider a parent task plus independently verifiable child tasks; dependencies must be written in child artifacts, not implied by tree position.
 Sub-agent mode: curate `implement.jsonl` and `check.jsonl` as spec/research manifests before start.
+Frontend/UI scope: load the project-local UUPM skill, persist task-specific design research, synthesize approved decisions into `design.md`, and add the research plus relevant frontend specs to both context manifests.
 [/workflow-state:planning]
 
 <!-- Per-turn breadcrumb: shown throughout Phase 1 when codex.dispatch_mode=inline.
@@ -207,6 +210,7 @@ Load `trellis-brainstorm`; stay in planning.
 Lightweight: `prd.md` can be enough. Complex: finish `prd.md`, `design.md`, and `implement.md`; ask for review before `task.py start`.
 Multi-deliverable scope: consider a parent task plus independently verifiable child tasks; dependencies must be written in child artifacts, not implied by tree position.
 Inline mode: skip jsonl curation; Phase 2 reads artifacts/specs via `trellis-before-dev`.
+Frontend/UI scope: load the project-local UUPM skill, persist task-specific design research, and synthesize approved decisions into `design.md` before final planning review.
 [/workflow-state:planning-inline]
 
 ### Phase 2: Execute
@@ -227,7 +231,7 @@ Tools: `trellis-implement` / `trellis-research` are sub-agent types only (Task/A
 Flow: `trellis-implement` -> `trellis-check` -> `trellis-update-spec` -> commit (Phase 3.4) -> `/trellis:finish-work`.
 Main-session default: dispatch implement/check sub-agents. Sub-agent self-exemption: if already running as `trellis-implement`, do NOT spawn another `trellis-implement` or `trellis-check`; if already running as `trellis-check`, do NOT spawn another `trellis-check` or `trellis-implement`. Dispatch is main session only.
 Dispatch prompt starts with `Active task: <task path from task.py current>`. Read context: jsonl entries -> `prd.md` -> `design.md if present` -> `implement.md if present`.
-Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate and the AI co-author trailer threshold.
+For frontend UI changes, implement against approved UUPM research/design and verify responsive, state, accessibility, and interaction decisions. For browser-accessible UI changes, read the project Playwright Validation Profile and classify automation before final check. Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate and the AI co-author trailer threshold.
 [/workflow-state:in_progress]
 
 <!-- Per-turn breadcrumb: shown while status='in_progress' when
@@ -239,7 +243,7 @@ Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate a
 Flow: `trellis-before-dev` -> edit -> `trellis-check` -> validation -> `trellis-update-spec` -> commit (Phase 3.4) -> `/trellis:finish-work`.
 Do not dispatch implement/check sub-agents in inline mode.
 Read context: `prd.md` -> `design.md if present` -> `implement.md if present`, plus relevant spec/research loaded by skills.
-Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate and the AI co-author trailer threshold.
+For frontend UI changes, implement against approved UUPM research/design and verify responsive, state, accessibility, and interaction decisions. For browser-accessible UI changes, read the project Playwright Validation Profile and classify automation before final check. Before Phase 3.4 commit, apply the Trellis Plus submit-ready human review gate and the AI co-author trailer threshold.
 [/workflow-state:in_progress-inline]
 
 ### Phase 3: Finish
@@ -379,6 +383,8 @@ Do the research in the main session directly and write findings into `{TASK_DIR}
 Brainstorm and research can interleave freely — pause to research a technical question, then return to talk with the user.
 
 **Key principle**: Research output must be written to files, not left only in the chat. Conversations get compacted; files don't.
+
+**Trellis Plus: UUPM planning**: for a frontend task that changes user-visible UI, load the active platform's project-local UUPM skill before implementation. Generate a task-specific design-system result with its installed `search.py --design-system` flow and save the raw Markdown under `{TASK_DIR}/research/ui-ux-pro-max.md`. Synthesize only selected product decisions, UI states, responsive behavior, keyboard/focus behavior, reduced-motion behavior, and accessibility constraints into `design.md`; raw search output is research, not an approved decision record. In sub-agent mode, add the UUPM research and relevant frontend specs to both context manifests. `design.md` is already injected as a task artifact and does not need a duplicate JSONL entry.
 
 #### 1.3 Configure context `[required · once]`
 
@@ -558,11 +564,22 @@ If issues are found → fix → re-check, until green.
 
 **Final pass (before Phase 3.4 commit)**: the last 2.2 of a task must run full-scope, not just on the latest implement chunk. List all affected packages with `python3 ./.trellis/scripts/get_context.py --mode packages`, then load each package's spec index Quality Check section. This catches cross-layer / multi-package issues a mid-iteration local 2.2 cannot.
 
+**Trellis Plus: UUPM verification**: for frontend UI work, compare the implementation with the task's approved `design.md`, UUPM research, and frontend specs. Verify relevant responsive breakpoints and narrow width; loading, empty, error, disabled, success, and permission states; typography and spacing consistency; accessible names, focus, keyboard flow, contrast, reduced motion, and touch targets. Lint, type-check, unit tests, and build are necessary but do not replace UI verification. Feed browser-automatable behavior into the Playwright gate below and reserve human review for residual judgment or environments automation cannot cover.
+
+**Trellis Plus: Playwright automated frontend validation**: for every browser-accessible UI change, read the single project `Trellis Plus: Playwright Validation Profile` before consulting external documentation. Classify the task as `playwright-required`, `playwright-existing-equivalent`, `playwright-not-effective`, or `playwright-unavailable`.
+
+- When automation can exercise the changed acceptance criteria, add or extend the smallest focused, reproducible browser test and run it before submit-ready. If no equivalent runner exists, bootstrap the smallest Playwright Test setup justified by the task, then update the project profile with the exact commands and constraints.
+- Record the exact command, browser project, covered routes/states/interactions/viewports, fixture or mock boundary, result, and residual human-only risk.
+- Preserve configured reports, traces, screenshots, and console/network evidence on failure. Never update snapshots silently or weaken assertions merely to obtain a pass.
+- `playwright-not-effective` must name the unautomatable risk and its smallest replacement check. `playwright-unavailable` must name the exact failed prerequisite or attempted command and cannot be reported as passing browser validation.
+
+Do not request a generic browser smoke test after focused automation covers the relevant acceptance criteria. Feed only subjective, real-device, private-environment, assistive-technology, security-sensitive, or otherwise unautomatable residual risk into human review.
+
 **Trellis Plus: Submit-ready human review gate**: after the final pass and before proposing commits, decide whether human review is `human-required`, `human-optional`, or `human-not-needed`.
 
-- `human-required`: stop before commit and ask for targeted feedback when UI/UX/copy/workflow behavior changed, product judgment is still ambiguous, validation needs browser/device/credentials/external services, a material check was skipped, the change touches high-risk areas such as auth/billing/deletion/security/deployment, or tests only cover mechanics but not the promised user-facing behavior.
-- `human-optional`: all relevant checks passed and remaining risk is low, but a user smoke test could add confidence.
-- `human-not-needed`: the change is mechanical, documentation-only, or fully covered by focused tests; include the reason in the commit plan.
+- `human-required`: stop before commit and ask for targeted feedback when a material browser-automatable UI path remains unvalidated, Playwright is unavailable, product/visual/copy judgment is unresolved, validation needs a real device, assistive technology, private credentials, hardware, production-like data, or external services, a material check was skipped, the change touches high-risk areas such as auth/billing/deletion/security/deployment, or tests only cover mechanics rather than the promised user-facing behavior.
+- `human-optional`: all relevant checks passed, focused browser automation covered the changed path when applicable, and only a low-signal visual or preference check remains.
+- `human-not-needed`: the change is mechanical or documentation-only, or focused tests including applicable browser coverage leave no meaningful human-only judgment; include the reason in the commit plan.
 
 When asking for review, include what changed, automated checks and results, exact manual paths to test, the useful feedback format, and only the open questions that affect commit readiness.
 
@@ -595,6 +612,8 @@ Load the `trellis-update-spec` skill and review whether this task produced new k
 - New technical decisions
 
 Update the docs under `.trellis/spec/` accordingly. Even if the conclusion is "nothing to update", walk through the judgment.
+
+For UUPM-backed frontend work, promote only stable and reusable UI rules into the existing frontend spec. Keep task-specific decisions and raw UUPM output in the task directory; do not create a competing project-level `MASTER.md` unless the repository explicitly adopts it as canonical.
 
 #### 3.4 Commit changes `[required · once]`
 
