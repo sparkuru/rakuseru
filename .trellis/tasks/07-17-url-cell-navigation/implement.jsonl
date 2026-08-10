@@ -1,0 +1,13 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend scope gate, package expectations, and server quality boundary"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "API package placement and frontend/backend dependency direction"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "MariaDB migrations, ownership, transactions, attachments, and rollback constraints"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Typed API error envelope and hidden-resource behavior"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Structured logging and secret/content redaction boundaries"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend validation, integration test, migration, and deployment checks"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend validation profile plus UUPM and Playwright workflow"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Editor UI, accessibility, toolbar priority, and component boundaries"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Local persistence, URL state, store ownership, and future remote-state boundary"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Portable document contract and validation boundaries shared across layers"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Required frontend commands and browser-validation expectations"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "End-to-end data flow across database, API, state, UI, and exports"}
+{"file": ".trellis/tasks/07-17-url-cell-navigation/research/ui-ux-pro-max.md", "reason": "Approved/rejected UUPM evidence for hosted mode, states, navigation, and accessibility"}

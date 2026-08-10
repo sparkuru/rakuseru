@@ -1,0 +1,11 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "Verify first backend package fulfills the recorded project baseline."}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Check dependency direction and transport/application/infrastructure separation."}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Check migrations, transactional invariants, isolation, and restore evidence."}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Check stable statuses, envelopes, validation errors, and secret-safe failures."}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Check structured logs, audit coverage, and sentinel-secret redaction."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Run the complete backend and Compose quality gate."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check shared contract extraction does not weaken frontend types or serialization."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Run existing frontend regression checks after workspace extraction."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify request-to-database-to-audit data flow and downstream contracts."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Check shared abstractions are justified and package-neutral."}
+{"file": ".trellis/tasks/08-10-hosted-service-foundation/research/hosted-stack.md", "reason": "Verify implementation remains consistent with primary-source compatibility evidence."}

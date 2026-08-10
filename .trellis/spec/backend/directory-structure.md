@@ -1,32 +1,82 @@
 # Backend Directory Structure
 
-Rakuseru has no backend directory today. Do not create `server/`, `api/`, route handlers, or server utilities for ordinary editor, import/export, or IndexedDB work.
+## Scenario: Add or extend a hosted backend capability
 
-## Current Boundaries
+### 1. Scope / Trigger
 
-- App shell and bootstrap: `src/app/App.tsx`, `src/app/bootstrap.tsx`
-- UI components: `src/components/`
-- Document model and validation: `src/model/`
-- Browser persistence: `src/storage/indexedDb.ts`
-- File import/export: `src/adapters/`
-- Browser-only utilities: `src/utils/`
+Use this layout whenever code runs in Node, talks to MariaDB, authenticates a
+principal, or exposes an HTTP contract. Browser editing remains under `src/`.
 
-The absence of a backend is intentional. `mvp.md` states that the MVP should remain frontend-only unless multi-user collaboration, permissions, cloud storage, audit logs, or centralized attachment management becomes necessary.
+### 2. Signatures
 
-## If Backend Scope Is Approved
+```text
+apps/api/src/app.ts                 HTTP composition and schemas
+apps/api/src/server.ts              validated startup, migration gate, shutdown
+apps/api/src/contracts.ts           principals, policies, registered scopes
+apps/api/src/config/                environment parsing/redacted summary
+apps/api/src/http/                  request, error, session, Origin/CSRF helpers
+apps/api/src/modules/               application/security/audit services
+apps/api/src/db/                    Kysely lifecycle, types, migrations
+apps/api/src/security/              password, digest, AES-GCM primitives
+apps/api/src/observability/         structured logger and redaction
+packages/document-contract/src/     browser-neutral SheetDocument contract
+```
 
-Create an explicit server package or top-level server directory instead of mixing server code into browser modules. The first backend task should define:
+### 3. Contracts
 
-- Runtime and framework.
-- API route layout.
-- Shared document contract strategy.
-- Validation and error response format.
-- Test, lint, type-check, build, and dev commands.
+- Dependency direction is transport -> application/policy -> domain contract;
+  database, Node crypto, cookies, and logging stay at infrastructure edges.
+- Route handlers declare schemas and call services. They do not issue SQL.
+- Repositories/database helpers do not make authorization decisions.
+- `server.ts` is the only listener entrypoint; tests import `createApp` without
+  opening a port.
+- Server code may import `@rakuseru/document-contract`, never React, DOM,
+  IndexedDB, downloads, or frontend state.
 
-Do not import browser-only modules such as `src/storage/indexedDb.ts`, `src/utils/download.ts`, or React components into server code.
+### 4. Validation & Error Matrix
 
-## Anti-Patterns
+- Browser-only import from `apps/api` -> dependency-boundary failure in review.
+- SQL inside `app.ts` -> reject; move it behind a service transaction.
+- Listener opened during tests/import -> reject; keep it in `server.ts`.
+- New shared document type outside `@rakuseru/document-contract` -> reject as a
+  forked canonical contract.
 
-- Adding ad hoc API helpers inside `src/components/`.
-- Treating `src/storage/indexedDb.ts` as a backend abstraction.
-- Introducing backend dependencies for local-only document editing or export formatting.
+### 5. Good/Base/Bad Cases
+
+- Good: `app.ts` validates a request and delegates to `SecurityService`.
+- Base: frontend modules continue importing stable `src/model/*` re-exports.
+- Bad: a component imports `apps/api/src/contracts.ts`, or the API imports
+  `src/storage/indexedDb.ts`.
+
+### 6. Tests Required
+
+- Strict source and test TypeScript projects for each workspace.
+- Contract-package compatibility fixtures and a browser-neutral import check.
+- HTTP tests through `createApp`; process startup is covered by image/Compose
+  smoke.
+- Search changed imports for cross-boundary dependencies during review.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+// apps/api/src/app.ts
+await db.updateTable('workspace_members').set({ role }).execute()
+```
+
+Correct:
+
+```ts
+await security.changeMemberRole(principal, workspaceId, userId, role, context)
+```
+
+## Ownership Rules
+
+- Root scripts aggregate web, `@rakuseru/document-contract`, and
+  `@rakuseru/api`; keep `build:web`, `test:web`, and `typecheck:web` available
+  for frontend-only container and regression paths.
+- Production commands run compiled `dist/commands/*.js`. `tsx` commands are
+  development-only and must not be required by the runtime image.
+- Generated `.tsbuildinfo` and `dist` artifacts are never trusted as Docker
+  build inputs; production builds force fresh TypeScript emit.

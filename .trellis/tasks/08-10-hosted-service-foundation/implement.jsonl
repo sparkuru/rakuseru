@@ -1,0 +1,11 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend package baseline and first-service decisions."}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "API module boundaries, dependency direction, and route/service/repository ownership."}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "MariaDB schema, migrations, transactions, tenant boundaries, and backup expectations."}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Stable typed HTTP error envelope and safe error translation."}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Structured request logging, audit separation, and secret redaction."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend lint, typecheck, test, build, integration, and container quality gate."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Portable document-contract extraction must preserve strict frontend types."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Existing frontend checks and local-mode regression coverage remain mandatory."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Trace HTTP, policy, transaction, audit, and shared-contract flows end to end."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Extract reusable contracts and ports without duplicating frontend or server logic."}
+{"file": ".trellis/tasks/08-10-hosted-service-foundation/research/hosted-stack.md", "reason": "Primary-source evidence for Node/Elysia, Kysely/mysql2, MariaDB JSON, Argon2, and AES-GCM choices."}

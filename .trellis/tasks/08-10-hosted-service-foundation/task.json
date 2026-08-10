@@ -1,0 +1,29 @@
+{
+  "id": "hosted-service-foundation",
+  "name": "hosted-service-foundation",
+  "title": "Hosted service foundation",
+  "description": "Establish the Node/Elysia and MariaDB service foundation for hosted Rakuseru workspaces, including portable document contracts, local authentication, workspace membership policy, API credentials, audit events, Compose topology, and operator documentation.",
+  "status": "in_progress",
+  "dev_type": "backend",
+  "scope": "cross-layer-foundation",
+  "package": "apps/api",
+  "priority": "P2",
+  "creator": "makuro-hado",
+  "assignee": "makuro-hado",
+  "createdAt": "2026-08-10",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "makuro-haado",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "07-17-url-cell-navigation",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "human_review": "human-required",
+    "evidence": ".trellis/tasks/08-10-hosted-service-foundation/evidence.md"
+  }
+}

@@ -1,6 +1,13 @@
 # Type Safety
 
-TypeScript strict mode is required. `SheetDocument`, `ColumnDef`, `RowData`, and `CellValue` in `src/model/document.ts` are the canonical contracts for sheet contents, storage payloads, imports, and export adapters. Document-library metadata wraps `SheetDocument` in `src/model/library.ts`; it must not replace or fork the canonical sheet model.
+TypeScript strict mode is required. `@rakuseru/document-contract` is the
+browser-neutral canonical source for `SheetDocument`, `ColumnDef`, `RowData`,
+`CellValue`, coercion, color helpers, and untrusted-document validation.
+`src/model/document.ts`, `cell.ts`, `color.ts`, `column.ts`, and `validation.ts`
+are stable frontend re-export boundaries; existing frontend callers should not
+import workspace internals or fork those contracts. Document-library metadata
+wraps `SheetDocument` in `src/model/library.ts`; it must not replace the
+canonical sheet model.
 
 ## Compiler Contract
 
@@ -8,7 +15,10 @@ TypeScript strict mode is required. `SheetDocument`, `ColumnDef`, `RowData`, and
 
 ## Type Organization
 
-Shared document types live in `src/model/document.ts`. Boundary modules import these types instead of redefining partial shapes.
+Shared document types and pure validation live in
+`packages/document-contract/src/`. Frontend boundary modules normally import
+the stable `src/model/*` re-exports; Node consumers import the package public
+entrypoint. Neither consumer imports private package source paths.
 
 Column type values are centralized in `COLUMN_TYPES` from `src/model/column.ts`. Use this list for UI selectors and validation instead of duplicating string arrays.
 
@@ -16,7 +26,10 @@ Document-library wrapper types live in `src/model/library.ts`: `LibraryDocumentR
 
 ## Validation
 
-Runtime validation for JSON imports and IndexedDB reads lives in `src/model/validation.ts`. It accepts `unknown`, returns `ValidationResult<SheetDocument>`, and normalizes cells through shared model helpers.
+Runtime validation for JSON imports and IndexedDB reads is implemented by the
+portable contract and re-exported from `src/model/validation.ts`. It accepts
+`unknown`, returns `ValidationResult<SheetDocument>`, and normalizes cells
+through shared model helpers.
 
 Validation boundary:
 
@@ -25,6 +38,73 @@ validateSheetDocument(input: unknown): ValidationResult<SheetDocument>
 ```
 
 Bad imports should return user-readable error strings. Valid imports should return a version-1 `SheetDocument` with row cells aligned to current column ids.
+
+## Portable Document Contract
+
+### 1. Scope / Trigger
+
+- Trigger: a browser or Node consumer needs the canonical version-1 document
+  shape, coercion, color normalization, or untrusted-payload validation.
+
+### 2. Signatures
+
+```ts
+import {
+  validateSheetDocument,
+  type CellValue,
+  type ColumnDef,
+  type RowData,
+  type SheetDocument,
+} from '@rakuseru/document-contract'
+```
+
+### 3. Contracts
+
+- The package public entrypoint is browser-neutral: no DOM, React, IndexedDB,
+  downloads, HTTP, database, or Node-only runtime imports.
+- `SheetDocument.version` remains `1`; current frontend imports stay stable
+  through `src/model/*` re-exports.
+- Consumers accept external payloads as `unknown` and call the shared
+  validator instead of casting.
+
+### 4. Validation & Error Matrix
+
+- Valid version-1 fixture -> normalized document preserving all current cell
+  kinds, inline images, presentation fields, and ids.
+- Invalid structure/type/version -> `ValidationResult` error with the existing
+  user-readable message contract.
+- Private package subpath import or browser/server dependency -> boundary
+  failure in review.
+
+### 5. Good/Base/Bad Cases
+
+- Good: frontend uses `src/model/validation.ts`; hosted code imports the package
+  public entrypoint; both execute the same implementation.
+- Base: old frontend callers compile unchanged after extraction.
+- Bad: copy `SheetDocument` into an API package or import React/IndexedDB into
+  the portable package.
+
+### 6. Tests Required
+
+- Representative JSON fixture covering every current cell kind and inline
+  image.
+- Valid round-trip plus malformed version, columns, rows, ids, and values.
+- Contract package build/typecheck/tests, then unchanged frontend tests/build.
+- Inspect emitted/public imports for browser and Node neutrality.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```ts
+type ApiSheetDocument = { version: number; rows: unknown[] }
+```
+
+Correct:
+
+```ts
+import type { SheetDocument } from '@rakuseru/document-contract'
+```
 
 ## Active Sheet Content Validation
 
