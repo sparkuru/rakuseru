@@ -55,6 +55,8 @@ Regression tests were added for each class. The review classified the change
 as `human-required` because it changes authentication, authorization,
 cryptography, database concurrency, and deployment behavior.
 
+The submit-ready human review was approved on 2026-08-10.
+
 ## Isolated MariaDB, image, Compose, and restore gate
 
 Run against the final post-review source in disposable projects:
