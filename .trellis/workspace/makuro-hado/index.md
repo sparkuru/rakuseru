@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 11
-- **Last Active**: 2026-07-17
+- **Total Sessions**: 12
+- **Last Active**: 2026-08-10
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~371 | Active |
+| `journal-1.md` | ~395 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 12 | 2026-08-10 | Hosted service foundation | `68c6df1`, `2954a50`, `e59d64c`, `17fc176` | `makuro-haado` |
 | 11 | 2026-07-17 | Sheet background colors | `2e9978b` | `makuro-haado` |
 | 10 | 2026-07-17 | XLSX import mapping review | `3b4f224` | `makuro-haado` |
 | 9 | 2026-07-16 | Portable exports and editor refinement | `c0ad841` | `makuro-haado` |

@@ -369,3 +369,27 @@ Added persistent row, column, and cell background colors with cell-over-row-over
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: Hosted service foundation
+
+**Date**: 2026-08-10
+**Task**: Hosted service foundation
+**Branch**: `makuro-haado`
+
+### Summary
+
+Added the portable document contract, Elysia/MariaDB hosted security foundation, production Compose deployment, real dump/restore evidence, and durable backend specifications; independent review and required human review passed.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `68c6df1` | (see git log) |
+| `2954a50` | (see git log) |
+| `e59d64c` | (see git log) |
+| `17fc176` | (see git log) |
+
+### Status
+
+[OK] **Completed**
