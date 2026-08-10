@@ -1,0 +1,30 @@
+FROM node:22.22.0-alpine3.23 AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY packages/document-contract/package.json ./packages/document-contract/package.json
+RUN npm ci
+
+COPY index.html vite.config.ts tsconfig*.json ./
+COPY apps/api/tsconfig.json ./apps/api/tsconfig.json
+COPY src ./src
+COPY packages/document-contract ./packages/document-contract
+RUN npm exec tsc -- --build packages/document-contract/tsconfig.json --force \
+  && npm run build:web
+
+FROM nginx:1.29.8-alpine3.23 AS runtime
+
+COPY docker/web.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+
+USER nginx
+
+EXPOSE 8080
+STOPSIGNAL SIGQUIT
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1
+
+ENTRYPOINT []
+CMD ["nginx", "-g", "daemon off;"]

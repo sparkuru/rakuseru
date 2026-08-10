@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "title": "兼容性清单",
+  "columns": [
+    { "id": "text", "title": "文本", "type": "text", "width": 210, "wrap": true, "backgroundColor": "#fff3bf" },
+    { "id": "number", "title": "数字", "type": "number", "required": true, "align": "right" },
+    { "id": "money", "title": "金额", "type": "money" },
+    { "id": "single", "title": "单选", "type": "singleSelect", "options": ["待办", "完成"] },
+    { "id": "multi", "title": "多选", "type": "multiSelect", "options": ["采购", "紧急"] },
+    { "id": "image", "title": "图片", "type": "image" },
+    { "id": "link", "title": "链接", "type": "link" }
+  ],
+  "rows": [
+    {
+      "id": "row-1",
+      "height": 96,
+      "lockedHeight": true,
+      "backgroundColor": "#d3f9d8",
+      "cellBackgroundColors": { "money": "#C5F6FA" },
+      "cells": {
+        "text": "显示器",
+        "number": 2,
+        "money": 2499.5,
+        "single": "待办",
+        "multi": ["采购", "紧急"],
+        "image": {
+          "kind": "image",
+          "name": "monitor.png",
+          "mime": "image/png",
+          "dataUrl": "data:image/png;base64,iVBORw0KGgo=",
+          "fit": "contain"
+        },
+        "link": "https://example.test/monitor"
+      }
+    }
+  ]
+}

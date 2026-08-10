@@ -1,0 +1,38 @@
+{
+  "name": "@rakuseru/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "migrate": "node dist/commands/migrate.js",
+    "bootstrap": "node dist/commands/bootstrap.js",
+    "migrate:dev": "tsx src/commands/migrate.ts",
+    "bootstrap:dev": "tsx src/commands/bootstrap.ts"
+  },
+  "dependencies": {
+    "@elysiajs/node": "1.4.5",
+    "@elysiajs/openapi": "1.4.14",
+    "argon2": "0.45.1",
+    "elysia": "1.4.29",
+    "kysely": "0.29.4",
+    "mysql2": "3.23.2"
+  },
+  "devDependencies": {
+    "tsx": "4.20.6",
+    "vitest": "4.1.9"
+  }
+}

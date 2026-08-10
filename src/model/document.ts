@@ -2,49 +2,18 @@ import { createId } from '../utils/ids'
 import { createColumn } from './column'
 import { createEmptyCellValue } from './cell'
 
-export type ColumnType = 'text' | 'number' | 'money' | 'singleSelect' | 'multiSelect' | 'image' | 'link'
-export type ColumnAlign = 'left' | 'center' | 'right'
+import type { ColumnDef, RowData, SheetDocument } from '../../packages/document-contract/src/index'
 
-export type SheetDocument = {
-  version: 1
-  title: string
-  columns: ColumnDef[]
-  rows: RowData[]
-}
-
-export type ColumnDef = {
-  id: string
-  title: string
-  type: ColumnType
-  width?: number
-  lockedWidth?: boolean
-  wrap?: boolean
-  align?: ColumnAlign
-  options?: string[]
-  required?: boolean
-  backgroundColor?: string
-}
-
-export type RowData = {
-  id: string
-  height?: number
-  lockedHeight?: boolean
-  backgroundColor?: string
-  cellBackgroundColors?: Record<string, string>
-  cells: Record<string, CellValue>
-}
-
-export type ImageFit = 'contain' | 'cover' | 'fill' | 'center'
-
-export type ImageCellValue = {
-  kind: 'image'
-  name: string
-  mime: string
-  dataUrl: string
-  fit?: ImageFit
-}
-
-export type CellValue = string | number | string[] | ImageCellValue
+export type {
+  CellValue,
+  ColumnAlign,
+  ColumnDef,
+  ColumnType,
+  ImageCellValue,
+  ImageFit,
+  RowData,
+  SheetDocument,
+} from '../../packages/document-contract/src/index'
 
 export function createSheetDocument(title = '新的清单'): SheetDocument {
   const columns = [

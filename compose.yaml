@@ -1,0 +1,118 @@
+services:
+  web:
+    image: rakuseru-web:${RAKUSERU_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "${RAKUSERU_WEB_BIND_ADDRESS:-127.0.0.1}:${RAKUSERU_WEB_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - edge
+      - service
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:8080/health/ready || exit 1
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 12
+    restart: unless-stopped
+    stop_grace_period: 15s
+
+  api:
+    image: rakuseru-api:${RAKUSERU_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: "3000"
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env}
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: ${MARIADB_DATABASE:?Set MARIADB_DATABASE in .env}
+      DB_USER: ${MARIADB_USER:?Set MARIADB_USER in .env}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      DB_CONNECTION_LIMIT: ${DB_CONNECTION_LIMIT:-10}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-rakuseru_session}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-86400}
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?Set CREDENTIAL_ENCRYPTION_KEY in .env}
+      CREDENTIAL_KEY_VERSION: ${CREDENTIAL_KEY_VERSION:?Set CREDENTIAL_KEY_VERSION in .env}
+    expose:
+      - "3000"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - service
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health/ready').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 12
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  mariadb:
+    image: mariadb:11.8.8-noble
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:?Set MARIADB_DATABASE in .env}
+      MARIADB_USER: ${MARIADB_USER:?Set MARIADB_USER in .env}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-name-resolve
+    expose:
+      - "3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - service
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+    restart: unless-stopped
+    stop_grace_period: 60s
+
+networks:
+  edge:
+  service:
+    internal: true
+
+volumes:
+  mariadb_data:

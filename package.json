@@ -3,18 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc -b && vite build",
+    "build": "npm run build --workspace @rakuseru/document-contract && npm run build:web && npm run build --workspace @rakuseru/api",
+    "build:web": "tsc -b tsconfig.app.json tsconfig.node.json && vite build",
     "lint": "eslint .",
-    "test": "vitest run",
-    "typecheck": "tsc -b"
+    "test": "npm run test:web && npm test --workspace @rakuseru/document-contract && npm test --workspace @rakuseru/api",
+    "test:web": "vitest run src",
+    "typecheck": "npm run typecheck:web && npm run typecheck --workspace @rakuseru/document-contract && npm run typecheck --workspace @rakuseru/api",
+    "typecheck:web": "tsc -b tsconfig.app.json tsconfig.node.json",
+    "api:dev": "npm run dev --workspace @rakuseru/api",
+    "api:migrate": "npm run migrate --workspace @rakuseru/api",
+    "api:bootstrap": "npm run bootstrap --workspace @rakuseru/api"
   },
   "dependencies": {
     "@tanstack/react-table": "8.21.3",
     "exceljs": "3.10.0",
     "idb": "8.0.3",
-    "jszip": "^3.10.1",
+    "jszip": "3.10.1",
     "lucide-react": "1.22.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
@@ -37,6 +47,9 @@
     "vitest": "4.1.9"
   },
   "overrides": {
-    "uuid": "^11.1.1"
+    "glob@7.2.3": {
+      "brace-expansion": "1.1.18"
+    },
+    "uuid": "11.1.1"
   }
 }

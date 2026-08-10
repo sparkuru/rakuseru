@@ -2,8 +2,7 @@ import { createId } from '../utils/ids'
 import { coerceCellValue, createEmptyCellValue } from './cell'
 import type { ColumnAlign, ColumnDef, ColumnType, RowData, SheetDocument } from './document'
 
-export const COLUMN_TYPES: ColumnType[] = ['text', 'number', 'money', 'singleSelect', 'multiSelect', 'image', 'link']
-export const COLUMN_ALIGNMENTS: ColumnAlign[] = ['left', 'center', 'right']
+export { COLUMN_ALIGNMENTS, COLUMN_TYPES } from '../../packages/document-contract/src/index'
 export const DEFAULT_SELECT_OPTIONS = ['选项A', '选项B', '选项C']
 export const COLUMN_TYPE_LABELS: Record<ColumnType, string> = {
   text: '文本',
